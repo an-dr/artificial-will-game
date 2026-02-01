@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "arm64-debug",
+      "inherits": "arm64-debug-base",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "{YOUR PATH TO THE TOOLCHAIN}/vcpkg.cmake"
+      }
+    }
+  ]
+}
