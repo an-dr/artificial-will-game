@@ -2,15 +2,33 @@
 #include <SDL_image.h>  // Add this
 #include <iostream>
 #include <print>
+#include <box2d/box2d.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+
+void init_logging() {
+    auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("game.log", true);
+
+    std::vector<spdlog::sink_ptr> sinks{console_sink, file_sink};
+    auto logger = std::make_shared<spdlog::logger>("game", sinks.begin(), sinks.end());
+
+    spdlog::set_default_logger(logger);
+    spdlog::set_level(spdlog::level::debug); // or info/warn for release
+    spdlog::set_pattern("[%H:%M:%S] [%^%l%$] %v");
+}
 
 int main(int argc, char *argv[]) {
+    init_logging();
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
     SDL_Window *window = SDL_CreateWindow(
-        "Artificial Will - Hello World",
+        "Artificial Will",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         800, 600,
@@ -34,7 +52,7 @@ int main(int argc, char *argv[]) {
         std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
     }
 
-    SDL_Surface *surface = IMG_Load("assets/player1.png");
+    SDL_Surface *surface = IMG_Load("assets/robot_william.png");
     if (!surface) {
         std::println("No Image");
         // Handle error: IMG_GetError()
@@ -58,9 +76,9 @@ int main(int argc, char *argv[]) {
 
     int w, h;
     SDL_QueryTexture(spritesheet, nullptr, nullptr, &w, &h);
-    SDL_Rect src = {frame_width * 2, 0, frame_width, frame_height};
-    SDL_Rect dest = {x, y, frame_width, frame_height}; // Full size at position
 
+
+    spdlog::info("Game started");
     while (running) {
         // Update
         frame_counter++;

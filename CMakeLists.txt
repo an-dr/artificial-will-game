@@ -7,10 +7,14 @@ add_executable(artificial_will src/main.cpp)
 
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
+find_package(box2d CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
+        box2d::box2d
+        spdlog::spdlog
         SDL2_image::SDL2_image
 )
 

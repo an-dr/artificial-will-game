@@ -48,3 +48,5 @@ CMakeUserPresets.json
 
 # Buils directory
 build
+
+*.log
