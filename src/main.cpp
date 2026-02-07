@@ -1,13 +1,15 @@
 #include <SDL.h>
+#include <SDL_image.h>  // Add this
 #include <iostream>
+#include <print>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow(
+    SDL_Window *window = SDL_CreateWindow(
         "Artificial Will - Hello World",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
@@ -21,10 +23,75 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::cout << "SDL2 window created successfully!" << std::endl;
-    std::cout << "Press any key to close..." << std::endl;
 
-    SDL_Delay(5000);  // Show for 5 seconds
+    SDL_Renderer *renderer = SDL_CreateRenderer(
+        window,
+        -1, // first supporting driver
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+    );
+
+    if (renderer == nullptr) {
+        std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+    }
+
+    SDL_Surface *surface = IMG_Load("assets/player1.png");
+    if (!surface) {
+        std::println("No Image");
+        // Handle error: IMG_GetError()
+    }
+
+    // Convert to GPU texture
+    SDL_Texture *spritesheet = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface); // Free CPU copy immediately
+
+    bool running = true;
+
+    int x = 100;
+    int y = 100;
+    int frame_width = 64;
+    int frame_height = 64;
+
+    // Game loop
+    int current_frame = 0;
+    int frame_counter = 0;
+    const int frames_per_anim = 18;  // Change frame every 6 game loops
+
+    int w, h;
+    SDL_QueryTexture(spritesheet, nullptr, nullptr, &w, &h);
+    SDL_Rect src = {frame_width * 2, 0, frame_width, frame_height};
+    SDL_Rect dest = {x, y, frame_width, frame_height}; // Full size at position
+
+    while (running) {
+        // Update
+        frame_counter++;
+        if (frame_counter >= frames_per_anim) {
+            current_frame = (current_frame + 1) % 4;  // 0,1,2,3,0,1,2,3...
+            frame_counter = 0;
+        }
+
+        // 1. Handle input
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            }
+        }
+
+        // 2. Update game state
+        // ... your logic ...
+
+        // 3. Render
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black
+        SDL_RenderClear(renderer); // Clear backbuffer
+
+        // Draw sprite at position
+        SDL_Rect src = {current_frame * 64, 0, 64, 64};  // Assuming 64px frames
+        SDL_Rect dest = {x, y, 64, 64};
+        SDL_RenderCopy(renderer, spritesheet, &src, &dest);
+
+        SDL_RenderPresent(renderer); // Swap buffers (vsync waits here)
+    }
+
 
     SDL_DestroyWindow(window);
     SDL_Quit();

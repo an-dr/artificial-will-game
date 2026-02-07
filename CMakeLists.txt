@@ -6,10 +6,12 @@ set(CMAKE_CXX_STANDARD 23)
 add_executable(artificial_will src/main.cpp)
 
 find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL2_image CONFIG REQUIRED)
 
 target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
+        SDL2_image::SDL2_image
 )
 
 # Copy SDL2.dll to build directory

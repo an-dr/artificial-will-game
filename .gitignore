@@ -45,3 +45,6 @@
 
 # Cmake
 CMakeUserPresets.json
+
+# Buils directory
+build
