@@ -24,3 +24,9 @@ add_custom_command(TARGET artificial_will POST_BUILD
         $<TARGET_FILE:SDL2::SDL2>
         $<TARGET_FILE_DIR:artificial_will>
 )
+
+add_custom_command(TARGET artificial_will POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:artificial_will>/assets"
+        COMMENT "Copying assets to build directory"
+)

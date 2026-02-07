@@ -2,13 +2,12 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "arm64-debug-base",
-      "hidden": true,
+      "name": "vcpkg",
+      "hidden": false,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/arm64-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "arm64-windows"
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
       }
     }
   ]
