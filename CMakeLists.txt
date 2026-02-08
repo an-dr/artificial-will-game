@@ -3,12 +3,14 @@ project(artificial_will)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(artificial_will src/main.cpp)
 
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(box2d CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+find_package(abcmake REQUIRED)
+
+add_main_component(${PROJECT_NAME})
 
 target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2main
@@ -17,6 +19,7 @@ target_link_libraries(artificial_will PRIVATE
         spdlog::spdlog
         SDL2_image::SDL2_image
 )
+
 
 # Copy SDL2.dll to build directory
 add_custom_command(TARGET artificial_will POST_BUILD
