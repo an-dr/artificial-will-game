@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include "Window.hpp"
 
 void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -27,23 +28,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    SDL_Window *window = SDL_CreateWindow(
-        "Artificial Will",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        800, 600,
-        SDL_WINDOW_SHOWN
-    );
-
-    if (window == nullptr) {
-        std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
+    auto window = engine::Window("Artificial Will", 800, 600);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(
-        window,
+        window.getSdlWindow(),
         -1, // first supporting driver
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
@@ -111,7 +99,6 @@ int main(int argc, char *argv[]) {
     }
 
 
-    SDL_DestroyWindow(window);
     SDL_Quit();
 
     std::cout << "Cleanup complete." << std::endl;
