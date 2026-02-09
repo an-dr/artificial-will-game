@@ -16,10 +16,15 @@
 #include <string>
 
 namespace engine {
+
+    class Renderer;
+
     class Window {
         SDL_Window *window_;
 
     public:
+        friend class Renderer;
+
         Window(const std::string &title, const int width, const int height) {
             window_ = SDL_CreateWindow(title.c_str(),
                                        SDL_WINDOWPOS_CENTERED,
@@ -34,10 +39,6 @@ namespace engine {
 
         ~Window() {
             SDL_DestroyWindow(window_);
-        }
-
-        SDL_Window *getSdlWindow() const {
-            return window_;
         }
     };
 } // engine

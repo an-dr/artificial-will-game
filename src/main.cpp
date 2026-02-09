@@ -7,6 +7,8 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include "Window.hpp"
+#include "Animation.hpp"
+#include "Renderer.hpp"
 
 void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -30,15 +32,6 @@ int main(int argc, char *argv[]) {
 
     auto window = engine::Window("Artificial Will", 800, 600);
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(
-        window.getSdlWindow(),
-        -1, // first supporting driver
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
-
-    if (renderer == nullptr) {
-        std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-    }
 
     SDL_Surface *surface = IMG_Load("assets/robot_william.png");
     if (!surface) {
@@ -46,8 +39,11 @@ int main(int argc, char *argv[]) {
         // Handle error: IMG_GetError()
     }
 
+    // Create a renderer
+    const auto renderer = engine::Renderer(window);
+
     // Convert to GPU texture
-    SDL_Texture *spritesheet = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_Texture *spritesheet = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface);
     SDL_FreeSurface(surface); // Free CPU copy immediately
 
     bool running = true;
@@ -60,7 +56,7 @@ int main(int argc, char *argv[]) {
     // Game loop
     int current_frame = 0;
     int frame_counter = 0;
-    const int frames_per_anim = 18;  // Change frame every 6 game loops
+    const int frames_per_anim = 18; // Change frame every 6 game loops
 
     int w, h;
     SDL_QueryTexture(spritesheet, nullptr, nullptr, &w, &h);
@@ -71,7 +67,7 @@ int main(int argc, char *argv[]) {
         // Update
         frame_counter++;
         if (frame_counter >= frames_per_anim) {
-            current_frame = (current_frame + 1) % 4;  // 0,1,2,3,0,1,2,3...
+            current_frame = (current_frame + 1) % 4; // 0,1,2,3,0,1,2,3...
             frame_counter = 0;
         }
 
@@ -87,20 +83,18 @@ int main(int argc, char *argv[]) {
         // ... your logic ...
 
         // 3. Render
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // black
-        SDL_RenderClear(renderer); // Clear backbuffer
+        renderer.startFrame();
 
-        // Draw sprite at position
-        SDL_Rect src = {current_frame * 64, 0, 64, 64};  // Assuming 64px frames
-        SDL_Rect dest = {x, y, 64, 64};
-        SDL_RenderCopy(renderer, spritesheet, &src, &dest);
+        renderer.copyTexture(spritesheet,
+                             SDL_Rect{current_frame * 64, 0, 64, 64},
+                             SDL_Rect{x, y, 64, 64});
 
-        SDL_RenderPresent(renderer); // Swap buffers (vsync waits here)
+        renderer.completeFrame();
     }
 
 
     SDL_Quit();
 
-    std::cout << "Cleanup complete." << std::endl;
+    spdlog::info("Game is closed");
     return 0;
 }
