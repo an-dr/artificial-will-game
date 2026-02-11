@@ -9,6 +9,7 @@
 #include "Window.hpp"
 #include "Animation.hpp"
 #include "Renderer.hpp"
+#include "Texture.hpp"
 
 void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -30,48 +31,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    auto window = engine::Window("Artificial Will", 800, 600);
-
-
-    SDL_Surface *surface = IMG_Load("assets/robot_william.png");
-    if (!surface) {
-        std::println("No Image");
-        // Handle error: IMG_GetError()
-    }
-
-    // Create a renderer
+    const auto window = engine::Window("Artificial Will", 800, 600);
     const auto renderer = engine::Renderer(window);
+    auto robot_william_png = engine::Texture("assets/robot_william.png", renderer);
 
-    // Convert to GPU texture
-    SDL_Texture *spritesheet = SDL_CreateTextureFromSurface(renderer.getRenderer(), surface);
-    SDL_FreeSurface(surface); // Free CPU copy immediately
-
-    bool running = true;
-
-    int x = 100;
-    int y = 100;
-    int frame_width = 64;
-    int frame_height = 64;
-
-    // Game loop
-    int current_frame = 0;
-    int frame_counter = 0;
-    const int frames_per_anim = 18; // Change frame every 6 game loops
-
-    int w, h;
-    SDL_QueryTexture(spritesheet, nullptr, nullptr, &w, &h);
-
+    auto pos = SDL_Rect{100, 100, 64, 64};
+    engine::Animation player(robot_william_png.getTexture(), 4, 18, 64, 64, pos);
 
     spdlog::info("Game started");
+    bool running = true;
     while (running) {
-        // Update
-        frame_counter++;
-        if (frame_counter >= frames_per_anim) {
-            current_frame = (current_frame + 1) % 4; // 0,1,2,3,0,1,2,3...
-            frame_counter = 0;
-        }
-
-        // 1. Handle input
+        // Handle input
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -79,15 +49,11 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // 2. Update game state
-        // ... your logic ...
-
-        // 3. Render
+        // Render
         renderer.startFrame();
 
-        renderer.copyTexture(spritesheet,
-                             SDL_Rect{current_frame * 64, 0, 64, 64},
-                             SDL_Rect{x, y, 64, 64});
+        renderer.draw(player);
+        player.setPosition(pos.x++, pos.y++);
 
         renderer.completeFrame();
     }

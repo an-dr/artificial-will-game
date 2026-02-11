@@ -14,15 +14,24 @@
 
 #include <string>
 #include <SDL_image.h>
+#include "Renderer.hpp"
 
 
 namespace engine {
     class Texture {
+        SDL_Texture *texture_ = nullptr;
+
     public:
-        Texture(const std::string & file_path) {
-            SDL_Surface *surface = IMG_LoadTexture(file_path.c_str());
+        Texture(const std::string &file_path, const Renderer &renderer) {
+            SDL_Texture *t = IMG_LoadTexture(renderer.getRenderer(), file_path.c_str());
+            if (!t) {
+                throw std::runtime_error("No image");
+            }
+            texture_ = t;
+        }
 
-
+        SDL_Texture * getTexture() {
+            return texture_;
         }
     };
 }

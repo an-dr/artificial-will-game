@@ -18,6 +18,7 @@ namespace engine {
     class Animation : public Drawable {
         int frames_ = 0;
         int current_a_frame = 0;
+        int frame_counter_ = 0;
         int frames_per_a_frame = 18;
         int animation_frame_w = 0;
         int animation_frame_h = 0;
@@ -32,13 +33,14 @@ namespace engine {
             setTextureFrame(0, 0, animation_frame_w, animation_frame_h);
         }
 
-        void update() {
-            current_a_frame++;
-            if (current_a_frame >= frames_per_a_frame) {
+        void draw(SDL_Renderer *renderer) override {
+            frame_counter_++;
+            if (frame_counter_ >= frames_per_a_frame) {
                 current_a_frame = (current_a_frame + 1) % frames_;
-                current_a_frame = 0;
+                frame_counter_ = 0;
             }
             setTextureFrame(current_a_frame * animation_frame_w, 0);
+            Drawable::draw(renderer);
         }
     };
 }

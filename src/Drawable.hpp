@@ -36,9 +36,12 @@ namespace engine {
         friend class Renderer;
 
         Drawable(SDL_Texture *texture, SDL_Rect &position)
-            : texture_(texture) {
+            : texture_(texture), location_frame_(position) {
             SDL_QueryTexture(texture, nullptr, nullptr, &texture_frame_.w, &texture_frame_.h);
         }
+
+        virtual ~Drawable() = default;
+
 
         void setPosition(const int x, const int y) {
             location_frame_.x = x;
@@ -60,6 +63,10 @@ namespace engine {
             texture_frame_.y = y;
             texture_frame_.w = w;
             texture_frame_.h = h;
+        }
+
+        virtual void draw(SDL_Renderer *renderer) {
+            SDL_RenderCopy(renderer, texture_, &texture_frame_, &location_frame_);
         }
     };
 }

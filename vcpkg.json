@@ -1,8 +1,9 @@
 {
   "name": "artificial-will",
   "version": "0.1.0",
-  "builtin-baseline": "96d5fb3de135b86d7222c53f2352ca92827a156b",
+  "builtin-baseline": "b716eeeed940216e91d67d6fbcee69c603665aef",
   "dependencies": [
+    "abcmake",
     "sdl2",
     "sdl2-image",
     "spdlog",

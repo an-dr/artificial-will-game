@@ -54,9 +54,8 @@ namespace engine {
             SDL_RenderCopy(renderer_, const_cast<SDL_Texture *>(texture), s, d);
         }
 
-        void draw(const Drawable &drawable) const {
-            copyTexture(drawable.texture_, drawable.texture_frame_,
-                        drawable.location_frame_);
+        void draw(Drawable &drawable) const {
+            drawable.draw(renderer_);
         }
 
         void completeFrame() const {

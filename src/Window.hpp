@@ -12,11 +12,9 @@
 
 #pragma once
 #include <SDL.h>
-#include <memory>
-#include <string>
+#include <stdexcept>
 
 namespace engine {
-
     class Renderer;
 
     class Window {
