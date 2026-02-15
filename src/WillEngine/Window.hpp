@@ -14,7 +14,7 @@
 #include <SDL.h>
 #include <stdexcept>
 
-namespace engine {
+namespace will_engine {
     class Renderer;
 
     class Window {

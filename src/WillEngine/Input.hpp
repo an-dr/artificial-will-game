@@ -14,7 +14,7 @@
 #include <SDL.h>
 #include <optional>
 
-namespace engine {
+namespace will_engine {
 
     enum class InputEvent {
         None,

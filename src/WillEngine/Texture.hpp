@@ -17,7 +17,7 @@
 #include "Renderer.hpp"
 
 
-namespace engine {
+namespace will_engine {
     class Texture {
         SDL_Texture *texture_ = nullptr;
 

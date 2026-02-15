@@ -14,7 +14,7 @@
 #include "Drawable.hpp"
 
 
-namespace engine {
+namespace will_engine {
     class Animation : public Drawable {
         int frames_ = 0;
         int current_a_frame = 0;

@@ -6,11 +6,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
-#include "Window.hpp"
-#include "Animation.hpp"
-#include "Renderer.hpp"
-#include "Texture.hpp"
-#include "Input.hpp"
+#include "WillEngine/Window.hpp"
+#include "WillEngine/Animation.hpp"
+#include "WillEngine/Renderer.hpp"
+#include "WillEngine/Texture.hpp"
+#include "WillEngine/Input.hpp"
 
 void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -32,14 +32,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    const auto window = engine::Window("Artificial Will", 800, 600);
-    const auto renderer = engine::Renderer(window);
-    auto robot_william_png = engine::Texture("assets/robot_william.png", renderer);
+    const auto window = will_engine::Window("Artificial Will", 800, 600);
+    const auto renderer = will_engine::Renderer(window);
+    auto robot_william_png = will_engine::Texture("assets/robot_william.png", renderer);
 
     auto pos = SDL_Rect{100, 100, 64, 64};
-    engine::Animation player(robot_william_png.getTexture(), 4, 18, 64, 64, pos);
+    will_engine::Animation player(robot_william_png.getTexture(), 4, 18, 64, 64, pos);
 
-    auto input = engine::Input();
+    auto input = will_engine::Input();
 
     spdlog::info("Game started");
     bool running = true;
@@ -58,19 +58,19 @@ int main(int argc, char *argv[]) {
 
         if (auto ev = input.get()) {
             switch (ev.value()) {
-                case engine::InputEvent::Down:
+                case will_engine::InputEvent::Down:
                     pos.y += 2; // Also fixed direction - see below
                     break;
-                case engine::InputEvent::Up:
+                case will_engine::InputEvent::Up:
                     pos.y -= 2;
                     break;
-                case engine::InputEvent::Left:
-                    pos.x-=2;
+                case will_engine::InputEvent::Left:
+                    pos.x -= 2;
                     break;
-                case engine::InputEvent::Right:
-                    pos.x+=2;
+                case will_engine::InputEvent::Right:
+                    pos.x += 2;
                     break;
-                case engine::InputEvent::None:
+                case will_engine::InputEvent::None:
                     break;
             }
         }

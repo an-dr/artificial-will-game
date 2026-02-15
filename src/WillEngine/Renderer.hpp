@@ -16,9 +16,8 @@
 #include <stdexcept>
 
 #include "Drawable.hpp"
-#include "Window.hpp"
 
-namespace engine {
+namespace will_engine {
     class Window;
 
     class Renderer {
