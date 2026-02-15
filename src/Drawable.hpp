@@ -35,7 +35,7 @@ namespace engine {
         friend class Window;
         friend class Renderer;
 
-        Drawable(SDL_Texture *texture, SDL_Rect &position)
+        Drawable(SDL_Texture *texture, const SDL_Rect &position)
             : texture_(texture), location_frame_(position) {
             SDL_QueryTexture(texture, nullptr, nullptr, &texture_frame_.w, &texture_frame_.h);
         }

@@ -10,6 +10,7 @@
 #include "Animation.hpp"
 #include "Renderer.hpp"
 #include "Texture.hpp"
+#include "Input.hpp"
 
 void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -38,6 +39,8 @@ int main(int argc, char *argv[]) {
     auto pos = SDL_Rect{100, 100, 64, 64};
     engine::Animation player(robot_william_png.getTexture(), 4, 18, 64, 64, pos);
 
+    auto input = engine::Input();
+
     spdlog::info("Game started");
     bool running = true;
     while (running) {
@@ -51,9 +54,28 @@ int main(int argc, char *argv[]) {
 
         // Render
         renderer.startFrame();
-
         renderer.draw(player);
-        player.setPosition(pos.x++, pos.y++);
+
+        if (auto ev = input.get()) {
+            switch (ev.value()) {
+                case engine::InputEvent::Down:
+                    pos.y += 2; // Also fixed direction - see below
+                    break;
+                case engine::InputEvent::Up:
+                    pos.y -= 2;
+                    break;
+                case engine::InputEvent::Left:
+                    pos.x-=2;
+                    break;
+                case engine::InputEvent::Right:
+                    pos.x+=2;
+                    break;
+                case engine::InputEvent::None:
+                    break;
+            }
+        }
+
+        player.setPosition(pos.x, pos.y);
 
         renderer.completeFrame();
     }
