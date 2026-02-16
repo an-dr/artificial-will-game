@@ -24,6 +24,8 @@ void init_logging() {
     spdlog::set_pattern("[%H:%M:%S] [%^%l%$] %v");
 }
 
+using namespace will_engine;
+
 int main(int argc, char *argv[]) {
     init_logging();
 
@@ -32,14 +34,14 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    const auto window = will_engine::Window("Artificial Will", 800, 600);
-    const auto renderer = will_engine::Renderer(window);
-    auto robot_william_png = will_engine::Texture("assets/robot_william.png", renderer);
-    auto box_png = will_engine::Texture("assets/box.png", renderer);
+    const auto window = Window("Artificial Will", 800, 600);
+    const auto renderer = Renderer(window);
+    auto robot_william_png = Texture("assets/robot_william.png", renderer);
+    auto box_png = Texture("assets/box.png", renderer);
 
-    auto pos = SDL_Rect{100, 100, 64, 64};
-    will_engine::Animation player(robot_william_png.getSdlTexture(), 4, 18, 64, 64, pos);
-    will_engine::Drawable box(box_png.getSdlTexture(), will_engine::Size(64, 64), will_engine::Position(200, 200));
+    auto pos = Position(100,100);
+    Animation player(robot_william_png.getSdlTexture(), 4, 18, Size(64,64), Size(64, 64), pos);
+    Drawable box(box_png.getSdlTexture(), Size(64, 64), Position(200, 200));
 
     auto input = will_engine::Input();
 
@@ -61,19 +63,19 @@ int main(int argc, char *argv[]) {
 
         if (auto ev = input.get()) {
             switch (ev.value()) {
-                case will_engine::InputEvent::Down:
+                case InputEvent::Down:
                     pos.y += 2; // Also fixed direction - see below
                     break;
-                case will_engine::InputEvent::Up:
+                case InputEvent::Up:
                     pos.y -= 2;
                     break;
-                case will_engine::InputEvent::Left:
+                case InputEvent::Left:
                     pos.x -= 2;
                     break;
-                case will_engine::InputEvent::Right:
+                case InputEvent::Right:
                     pos.x += 2;
                     break;
-                case will_engine::InputEvent::None:
+                case InputEvent::None:
                     break;
             }
         }

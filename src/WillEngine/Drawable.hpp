@@ -55,12 +55,12 @@ namespace will_engine {
             location_frame_.h = h;
         }
 
-        void setTextureFrame(const int x, const int y) {
+        void setFrameAtTexture(const int x, const int y) {
             texture_frame_.x = x;
             texture_frame_.y = y;
         }
 
-        void setTextureFrame(const int x, const int y, const int w, const int h) {
+        void setFrameAtTexture(const int x, const int y, const int w, const int h) {
             texture_frame_.x = x;
             texture_frame_.y = y;
             texture_frame_.w = w;

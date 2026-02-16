@@ -20,18 +20,16 @@ namespace will_engine {
         int current_a_frame = 0;
         int frame_counter_ = 0;
         int frames_per_a_frame = 18;
-        int animation_frame_w = 0;
-        int animation_frame_h = 0;
+        Size animation_frame_size = Size(0, 0);
 
     public:
-        Animation(SDL_Texture *texture, const int frames, const int fps, const int aframe_w, const int aframe_h,
-                  SDL_Rect &position) : Drawable(
-                                            texture, Size(position.w, position.h), Position(position.x, position.y)),
-                                        frames_(frames), frames_per_a_frame(fps),
-                                        animation_frame_w(aframe_w),
-                                        animation_frame_h(aframe_h) {
+        Animation(SDL_Texture *texture, const int frames, const int fps, const Size frame_size,
+                  const Size &size, const Position &position) : Drawable(
+                                                                    texture, size, position),
+                                                                frames_(frames), frames_per_a_frame(fps),
+                                                                animation_frame_size(frame_size) {
             type_ = DrawableType::Animation;
-            setTextureFrame(0, 0, animation_frame_w, animation_frame_h);
+            setFrameAtTexture(0, 0, animation_frame_size.width_x, animation_frame_size.height_y);
         }
 
         void draw(SDL_Renderer *renderer) override {
@@ -40,7 +38,7 @@ namespace will_engine {
                 current_a_frame = (current_a_frame + 1) % frames_;
                 frame_counter_ = 0;
             }
-            setTextureFrame(current_a_frame * animation_frame_w, 0);
+            setFrameAtTexture(current_a_frame * animation_frame_size.width_x, 0);
             Drawable::draw(renderer);
         }
     };
