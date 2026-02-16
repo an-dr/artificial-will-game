@@ -35,9 +35,11 @@ int main(int argc, char *argv[]) {
     const auto window = will_engine::Window("Artificial Will", 800, 600);
     const auto renderer = will_engine::Renderer(window);
     auto robot_william_png = will_engine::Texture("assets/robot_william.png", renderer);
+    auto box_png = will_engine::Texture("assets/box.png", renderer);
 
     auto pos = SDL_Rect{100, 100, 64, 64};
-    will_engine::Animation player(robot_william_png.getTexture(), 4, 18, 64, 64, pos);
+    will_engine::Animation player(robot_william_png.getSdlTexture(), 4, 18, 64, 64, pos);
+    will_engine::Drawable box(box_png.getSdlTexture(), will_engine::Size(64, 64), will_engine::Position(200, 200));
 
     auto input = will_engine::Input();
 
@@ -54,6 +56,7 @@ int main(int argc, char *argv[]) {
 
         // Render
         renderer.startFrame();
+        renderer.draw(box);
         renderer.draw(player);
 
         if (auto ev = input.get()) {

@@ -13,11 +13,10 @@
 #pragma once
 
 #include <SDL.h>
+#include "Position.hpp"
+#include "Size.hpp"
 
 namespace will_engine {
-    class Window;
-    class Renderer;
-
     enum class DrawableType {
         Static,
         Animation
@@ -32,12 +31,15 @@ namespace will_engine {
         DrawableType type_ = DrawableType::Static;
 
     public:
-        friend class Window;
         friend class Renderer;
 
-        Drawable(SDL_Texture *texture, const SDL_Rect &position)
-            : texture_(texture), location_frame_(position) {
-            SDL_QueryTexture(texture, nullptr, nullptr, &texture_frame_.w, &texture_frame_.h);
+        Drawable(SDL_Texture *texture, const Size &size, const Position &position)
+            : texture_(texture) {
+            int w = 0;
+            int h = 0;
+            SDL_QueryTexture(texture, nullptr, nullptr, &w, &h);
+            texture_frame_ = SDL_Rect{0, 0, w, h};
+            location_frame_ = SDL_Rect{position.x, position.y, size.width_x, size.height_y};
         }
 
         virtual ~Drawable() = default;

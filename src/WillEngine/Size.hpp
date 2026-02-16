@@ -11,18 +11,17 @@
 // *************************************************************************
 
 #pragma once
-#include <cstdint>
 
 namespace will_engine {
     struct Size {
-        uint32_t width_x;
-        uint32_t height_y;
-        uint32_t depth_z;
+        int width_x;
+        int height_y;
+        int depth_z;
 
-        Size(const uint32_t w_x, const uint32_t h_y) : width_x(w_x), height_y(h_y), depth_z(0) {
+        Size(const int w_x, const int h_y) : width_x(w_x), height_y(h_y), depth_z(0) {
         }
 
-        Size(const uint32_t w_x, const uint32_t h_y, const uint32_t d_z) : width_x(w_x), height_y(h_y), depth_z(d_z) {
+        Size(const int w_x, const int h_y, const int d_z) : width_x(w_x), height_y(h_y), depth_z(d_z) {
         }
     };
 }

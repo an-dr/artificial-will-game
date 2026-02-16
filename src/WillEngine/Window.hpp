@@ -15,14 +15,10 @@
 #include <stdexcept>
 
 namespace will_engine {
-    class Renderer;
-
     class Window {
         SDL_Window *window_;
 
     public:
-        friend class Renderer;
-
         Window(const std::string &title, const int width, const int height) {
             window_ = SDL_CreateWindow(title.c_str(),
                                        SDL_WINDOWPOS_CENTERED,
@@ -38,5 +34,7 @@ namespace will_engine {
         ~Window() {
             SDL_DestroyWindow(window_);
         }
+
+        [[nodiscard]] auto getSdlWindow() const -> SDL_Window * { return window_; }
     };
 } // engine

@@ -26,7 +26,8 @@ namespace will_engine {
     public:
         Animation(SDL_Texture *texture, const int frames, const int fps, const int aframe_w, const int aframe_h,
                   SDL_Rect &position) : Drawable(
-                                            texture, position), frames_(frames), frames_per_a_frame(fps),
+                                            texture, Size(position.w, position.h), Position(position.x, position.y)),
+                                        frames_(frames), frames_per_a_frame(fps),
                                         animation_frame_w(aframe_w),
                                         animation_frame_h(aframe_h) {
             type_ = DrawableType::Animation;

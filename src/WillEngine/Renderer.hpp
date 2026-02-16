@@ -14,19 +14,17 @@
 #include <optional>
 #include <SDL.h>
 #include <stdexcept>
-
 #include "Drawable.hpp"
+#include "Window.hpp"
 
 namespace will_engine {
-    class Window;
-
     class Renderer {
         SDL_Renderer *renderer_;
 
     public:
         explicit Renderer(const Window &window) {
             renderer_ = SDL_CreateRenderer(
-                window.window_,
+                window.getSdlWindow(),
                 -1, // first supporting driver
                 SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
             );
@@ -39,29 +37,19 @@ namespace will_engine {
 
         /// Start new frame
         void startFrame() const {
-            SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
-            SDL_RenderClear(renderer_);
-        }
-
-
-        void copyTexture(const SDL_Texture *texture,
-                         const std::optional<SDL_Rect> &src,
-                         const std::optional<SDL_Rect> &dest) const {
-            const SDL_Rect *s = src ? &(*src) : nullptr;
-            const SDL_Rect *d = dest ? &(*dest) : nullptr;
-
-            SDL_RenderCopy(renderer_, const_cast<SDL_Texture *>(texture), s, d);
+            SDL_SetRenderDrawColor(getSdlRenderer(), 0, 0, 0, 255);
+            SDL_RenderClear(getSdlRenderer());
         }
 
         void draw(Drawable &drawable) const {
-            drawable.draw(renderer_);
+            drawable.draw(getSdlRenderer());
         }
 
         void completeFrame() const {
-            SDL_RenderPresent(renderer_);
+            SDL_RenderPresent(getSdlRenderer());
         }
 
-        [[nodiscard]] SDL_Renderer *getRenderer() const {
+        [[nodiscard]] SDL_Renderer *getSdlRenderer() const {
             return renderer_;
         }
     };
