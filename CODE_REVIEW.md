@@ -1,163 +1,243 @@
-# Code Review - Full Codebase 2026-02-16
+# Code Review - Full Codebase (2026-02-17)
 
-## Summary
-An early-stage 2D game engine ("WillEngine") wrapping SDL2, with animation, input, and rendering. The codebase is small (~200 LOC) but has **3 critical resource leak bugs**, several Rule-of-Five violations that will cause crashes on copy, frame-rate-dependent gameplay, and misleading API naming. box2d is linked but unused.
+## 🎯 Summary
 
-## Critical Issues
+C++20 SDL2 game engine bootstrapping with Window, Renderer, Texture, Drawable/Animation
+hierarchy, and keyboard Input. The architecture is clean and simple for the project stage.
+Two critical bugs are present: `IMG_Init` is never called (silent texture-load failure) and
+all SDL resource wrappers violate the Rule of Five (double-free on copy). Four more high-priority
+issues cover dead code, misnamed parameters, misleading API, and animation state being mutated
+inside `draw()`.
 
-- **Renderer.hpp: no destructor** - `SDL_Renderer*` is never destroyed. Every time a `Renderer` is created and goes out of scope, the GPU resource leaks permanently.
-  - Impact: GPU resource leak, eventual resource exhaustion in long sessions
+---
+
+## ⚠️ Critical Issues
+
+- **`main.cpp:34`** — `IMG_Init()` is never called before `IMG_LoadTexture()`
+  - Impact: PNG loading silently returns null on platforms that require explicit format
+    initialization, causing a throw in `Texture::Texture()` with no indication of why.
   - Fix:
-  ```cpp
-  ~Renderer() {
-      if (renderer_) SDL_DestroyRenderer(renderer_);
-  }
-  ```
+    ```cpp
+    SDL_Init(SDL_INIT_VIDEO);
+    IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);  // add after SDL_Init
+    // ... at teardown:
+    IMG_Quit();
+    SDL_Quit();
+    ```
 
-- **Texture.hpp: no destructor** - `SDL_Texture*` is never destroyed. Every loaded texture leaks.
-  - Impact: VRAM leak, one per texture load
-  - Fix:
-  ```cpp
-  ~Texture() {
-      if (texture_) SDL_DestroyTexture(texture_);
-  }
-  ```
+- **`Renderer.hpp:22`, `Window.hpp:22`, `Texture.hpp:16`** — Rule of Five violated on all SDL resource wrappers
+  - Impact: Compiler-generated copy constructor shallow-copies the raw pointer. Any copy of
+    `Renderer`, `Window`, or `Texture` leads to a double-free (undefined behaviour / crash) when
+    both objects are destroyed.
+  - Fix: delete copy and move in all three classes:
+    ```cpp
+    Renderer(const Renderer&)            = delete;
+    Renderer& operator=(const Renderer&) = delete;
+    Renderer(Renderer&&)                 = delete;
+    Renderer& operator=(Renderer&&)      = delete;
+    ```
+    Apply identically to `Window` and `Texture`.
 
-- **Window.hpp / Renderer.hpp / Texture.hpp: Rule-of-Five violations** - `Window` has a destructor but no deleted/defined copy/move operations. `Renderer` and `Texture` have neither. If any of these are accidentally copied, you get double-free crashes or dangling pointers.
-  - Impact: Undefined behavior on copy; `const auto window = Window(...)` in main.cpp:37 works only because of copy elision (guaranteed in C++17) but the class is still unsafe
-  - Fix: Delete copy, define move for all three:
-  ```cpp
-  Window(const Window&) = delete;
-  Window& operator=(const Window&) = delete;
-  Window(Window&& other) noexcept : window_(std::exchange(other.window_, nullptr)) {}
-  Window& operator=(Window&&) = delete;
-  ```
+---
 
-## High Priority
+## 🔧 High Priority
 
-- **main.cpp:64-81 / Input.hpp:40-50** - Movement is not delta-time based. `pos.x += 2` runs once per frame, so speed is directly proportional to frame rate. At 60fps VSync = 120px/s; at 144Hz = 288px/s.
-  - Why: Gameplay will feel completely different on different monitors
-  - Suggestion: Track `SDL_GetTicks64()` delta and multiply:
-  ```cpp
-  auto now = SDL_GetTicks64();
-  float dt = (now - lastTick) / 1000.0f;
-  lastTick = now;
-  // ...
-  pos.x += static_cast<int>(speed * dt);
-  ```
+- **`Animation.hpp:38`** — `draw()` mutates animation state (mixing update and render)
+  - Why: Calling `draw()` twice in one frame (e.g., for debug overlays, multi-pass rendering)
+    double-advances the animation. The renderer should not be responsible for advancing game state.
+  - Suggestion: Separate update from render.
+    ```cpp
+    auto update() -> void {
+        frame_counter_++;
+        if (frame_counter_ >= frames_per_a_frame) {
+            current_a_frame_ = (current_a_frame_ + 1) % frames_;
+            frame_counter_ = 0;
+        }
+        setFrameAtTexture(current_a_frame_ * animation_frame_size_.width_x, 0);
+    }
 
-- **Animation.hpp:36-42** - Animation frame advancement is frame-rate dependent (`frame_counter_++` per render frame). Animation will play 2.4x faster on a 144Hz monitor vs 60Hz.
-  - Why: Same root cause as movement - no delta time
-  - Suggestion: Use elapsed time instead of frame counting
+    auto draw(SDL_Renderer* renderer) -> void override {
+        Drawable::draw(renderer);
+    }
+    ```
+    Call `player->update()` in the game loop before `renderer.draw(*player)`.
 
-- **Animation.hpp:29** - Constructor parameter `fps` is assigned to `frames_per_a_frame`, but `fps` means "frames per second" to any reader. The actual semantic is "render frames to wait before advancing one animation frame" - the exact opposite of what `fps` implies.
-  - Why: A caller passing `60` thinking "60 fps animation" would get an animation that advances once every 60 render frames (1 frame per second at 60Hz)
-  - Suggestion: Rename to `frame_delay` or `frames_per_animation_step`, or better yet, accept actual FPS and compute the delay internally
+- **`Drawable.hpp:21-25`, `Drawable.hpp:34`** — `DrawableType` enum and `type_` field are dead code
+  - Why: `type_` is written in constructors but never read anywhere. The `friend class Renderer`
+    declaration exists but `Renderer` never accesses private members directly — it only calls the
+    public `draw()`. Both are noise that will mislead future readers.
+  - Suggestion: Remove the enum, the `type_` field, and the `friend` declaration entirely.
 
-- **Window.hpp:29 / Renderer.hpp:33** - Constructors call `SDL_Quit()` on failure before throwing. A constructor should not tear down global state it doesn't own.
-  - Why: If anything else depends on SDL being initialized, it's now broken. The caller (main) should decide cleanup policy.
-  - Suggestion: Just `throw` without calling `SDL_Quit()`. Let main handle cleanup:
-  ```cpp
-  if (renderer_ == nullptr) {
-      throw std::runtime_error("Cannot create a renderer: " + std::string(SDL_GetError()));
-  }
-  ```
+- **`Animation.hpp:28`** — `fps` parameter name is wrong
+  - Why: `fps` conventionally means frames per second. Here it means "render frames to wait before
+    advancing one animation frame" — the opposite concept. Passing `18` with the name `fps` implies
+    18 FPS, but it means "advance every 18 render frames."
+  - Suggestion: Rename to `frame_duration` or `ticks_per_frame`:
+    ```cpp
+    Animation(SDL_Texture* texture, const int frames, const int ticks_per_frame,
+              const Size frame_size, const Size& size, const Position& position)
+    ```
 
-- **Input.hpp:31** - `get()` returns `std::optional<InputEvent>` but never returns `std::nullopt`. It always returns a value (including `InputEvent::None`). The optional wrapper is meaningless.
-  - Why: Misleading API - caller checks `.has_value()` in main.cpp:64 but it's always true
-  - Suggestion: Return `InputEvent` directly, or use `std::nullopt` for the "no input" case instead of `InputEvent::None`
+- **`main.cpp:50-53`** — `player_pos` is a duplicate of state already inside `player`
+  - Why: Position is stored in both `player_pos` (a local `Position`) and inside the `player`
+    object's `location_frame_`. They can diverge. `setPosition` is called unconditionally every
+    frame even when no input occurred.
+  - Suggestion: Remove `player_pos` and expose a `move(dx, dy)` method on `Drawable`, or read the
+    position back from the object:
+    ```cpp
+    case InputEvent::Up:   player->move(0, -2); break;
+    case InputEvent::Down: player->move(0,  2); break;
+    // ...
+    // no setPosition call needed after the switch
+    ```
 
-- **Input.hpp:40-50** - Single-direction-only input. The `if/else if` chain means pressing Down+Right gives only Down. Diagonal movement is impossible, and priority (Down > Left > Right > Up) is arbitrary.
-  - Why: Standard 2D movement should support simultaneous axes
-  - Suggestion: Return a velocity vector or a bitmask of active directions
+---
 
-## Modernization Opportunities
+## 🚀 Modernization Opportunities
 
-- **Drawable.hpp:26 / Texture.hpp:22** - Raw `SDL_Texture*` with no ownership semantics. In C++23 you should use RAII wrappers. A `std::unique_ptr` with a custom deleter is idiomatic:
-  - Modern approach:
-  ```cpp
-  struct SdlTextureDeleter {
-      void operator()(SDL_Texture* t) const { SDL_DestroyTexture(t); }
-  };
-  using UniqueTexture = std::unique_ptr<SDL_Texture, SdlTextureDeleter>;
-  ```
-  - Why it matters: Eliminates entire class of resource leak bugs
+- **`Renderer.hpp`, `Window.hpp`, `Texture.hpp`** — Raw owning pointers instead of `unique_ptr` with custom deleter
+  - Modern approach: express sole ownership with the type system:
+    ```cpp
+    struct SdlRendererDeleter {
+        void operator()(SDL_Renderer* r) const { SDL_DestroyRenderer(r); }
+    };
+    std::unique_ptr<SDL_Renderer, SdlRendererDeleter> renderer_;
+    ```
+    The destructor, copy-delete, and move semantics are then handled automatically — Rule of Five
+    for free.
+  - Why it matters: Eliminates the manual destructor, removes the Rule of Five violation, and
+    makes ownership semantically explicit.
 
-- **Size.hpp / Position.hpp** - These are plain aggregates that could be `struct Size { int width_x; int height_y; int depth_z = 0; };` with no user-declared constructors, gaining aggregate initialization, structured bindings, and `operator<=>` for free in C++23.
-  - Modern approach:
-  ```cpp
-  struct Position {
-      int x = 0;
-      int y = 0;
-      int z = 0;
-  };
-  // Usage: Position{100, 200} works via aggregate init
-  ```
-  - Why it matters: Less boilerplate, compiler-generated special members, designated initializers (`Position{.x=100, .y=200}`)
+- **`Input.hpp:29`** — `std::optional<InputEvent>` with no `std::nullopt` path
+  - Modern approach: The function always returns a value. Either remove the `optional`:
+    ```cpp
+    auto get() -> InputEvent;
+    ```
+    Or return `std::nullopt` when no key is pressed and remove `InputEvent::None`:
+    ```cpp
+    auto get() -> std::optional<InputEvent> {
+        if (movingDown)  return InputEvent::Down;
+        if (movingLeft)  return InputEvent::Left;
+        if (movingRight) return InputEvent::Right;
+        if (movingUp)    return InputEvent::Up;
+        return std::nullopt;
+    }
+    ```
+  - Why it matters: `optional` signals "may have no value." Wrapping a value that always exists
+    defeats the purpose and forces callers to unwrap for no reason.
 
-- **main.cpp:1** - Uses SDL2 (`#include <SDL.h>`). SDL3 has been stable since 2025, with better API design, GPU API, and modern C practices. Not urgent, but worth planning for.
-  - Why it matters: SDL2 is now in maintenance mode
+- **`Position.hpp`, `Size.hpp`** — Aggregate structs without constructors in C++20
+  - Modern approach: Use designated initialisers consistently instead of positional construction:
+    ```cpp
+    auto player_pos = Position{.x = 100, .y = 100};
+    auto frame_size = Size{.width_x = 64, .height_y = 64};
+    ```
+    This removes the ambiguity from `Size(0, 0)` (is the missing `depth_z` intentional?) and makes
+    all call sites self-documenting.
+  - Why it matters: Designated initialisers are C++20, this project already uses C++20 (`<print>`
+    is included).
 
-- **main.cpp:4** - `#include <print>` is included but never used. This is a C++23 feature - if you have it available, use `std::println` instead of `spdlog` for simple console output, or remove the include.
+- **`main.cpp:4-5`** — `#include <print>` included but `std::print` never used; `<box2d/box2d.h>` included but unused
+  - Modern approach: Remove dead includes. If `std::print` is intended to replace `std::cerr`,
+    finish the migration:
+    ```cpp
+    std::print(stderr, "SDL_Init Error: {}\n", SDL_GetError());
+    ```
+  - Why it matters: Unused includes increase compilation time and confuse readers about
+    dependencies.
 
-- **Drawable.hpp:34** - `friend class Renderer` breaks encapsulation. Renderer only calls `draw()` which is public. The friend declaration is unnecessary.
-  - Modern approach: Remove `friend class Renderer;` - it grants access to all private members when none is needed
+---
 
-## Improvements
+## 💡 Improvements
 
-- **main.cpp:33** - Error reporting uses `std::cerr` for SDL_Init failure but `spdlog` everywhere else. At this point spdlog is already initialized (line 30), so use it consistently:
-  ```cpp
-  spdlog::critical("SDL_Init Error: {}", SDL_GetError());
-  ```
+- **`Drawable.hpp:65-69`** — `setFrameAtTexture(x, y)` (2-arg overload) only sets position, not size
+  - Better approach: The name implies setting a full frame region but only half the rect is set.
+    Rename the 2-arg version to `setTextureOrigin(x, y)` to make the distinction clear.
 
-- **Texture.hpp:28** - Error message `"No image"` is unhelpful. Include the file path and SDL error:
-  ```cpp
-  throw std::runtime_error("Failed to load texture '" + file_path + "': " + IMG_GetError());
-  ```
+- **`Texture.hpp:25`** — `getSdlTexture()` is not `const`-qualified
+  - Better approach:
+    ```cpp
+    auto getSdlTexture() const -> SDL_Texture* { return texture_; }
+    ```
+    Without `const`, a `const Texture&` cannot provide its texture to the renderer.
 
-- **Texture.hpp:33** - `getSdlTexture()` should be `const`:
-  ```cpp
-  [[nodiscard]] SDL_Texture* getSdlTexture() const { return texture_; }
-  ```
+- **`Texture.hpp:20`** — Error message omits the file path
+  - Better approach:
+    ```cpp
+    throw std::runtime_error("Failed to load texture: " + file_path + " — " + IMG_GetError());
+    ```
 
-- **Drawable.hpp:70** - `draw()` is virtual but `Drawable` lacks a virtual destructor... wait, it has `virtual ~Drawable() = default;` on line 45. Good. But `draw()` should probably be pure virtual or at least the base `Drawable` class should document that it's meant to be a concrete class too.
+- **`Animation.hpp:22-24`** — Inconsistent member naming
+  - `frames_` uses `trailing_underscore_` convention; `current_a_frame`, `frame_counter_`, and
+    `frames_per_a_frame` do not. Apply trailing underscores uniformly:
+    `current_a_frame_`, `frame_counter_`, `frames_per_a_frame_`.
 
-- **main.cpp:52-57** - The event loop handles only `SDL_QUIT`. Common events like `SDL_KEYDOWN` for escape-to-quit are missing. Currently the only way to close is the window X button.
+- **`main.cpp:28`** — `using namespace will_engine` at file scope
+  - Limits flexibility (name conflicts if a third-party library also has `Window`, `Renderer`,
+    etc.). Prefix explicitly or limit to function scope.
 
-## Technical Debt
+- **`main.cpp:2`** — Stale `// Add this` comment on `#include <SDL_image.h>`
+  - Remove it; it was a TODO that has been resolved.
 
-- **box2d dependency** - box2d is in `vcpkg.json`, linked in `CMakeLists.txt`, and `#include`d in main.cpp but never used anywhere. It adds build time and binary size for zero benefit.
-  - Reason: Likely planned for future physics integration
-  - Future work: Remove until actually needed, or add a TODO in CMakeLists.txt
+---
 
-- **Header-only engine** - All WillEngine classes are defined entirely in `.hpp` files with no `.cpp` files. This is fine at current scale but will cause recompilation of everything on any header change as the project grows.
-  - Reason: Acceptable for a small prototype
-  - Future work: Split into headers and implementation files when the engine grows
+## 📝 Technical Debt
 
-- **No game loop timing** - No fixed timestep, no interpolation, no frame cap (beyond VSync). Physics and gameplay are entirely tied to render rate.
-  - Reason: Early prototype stage
-  - Future work: Implement a proper fixed-timestep game loop (e.g., "Fix Your Timestep" pattern)
+- **Game loop / timing** — Movement is `+= 2` per frame, tied entirely to vsync (60 Hz assumed)
+  - Reason: Acceptable while only one platform and one refresh rate are targeted.
+  - Future work: Introduce a `deltaTime` (seconds since last frame) and multiply all velocities by
+    it. Consider a fixed-timestep accumulator pattern for physics.
 
-- **Drawable ownership model** - `Drawable` holds a raw `SDL_Texture*` it doesn't own. Lifetime coupling between `Texture` and `Drawable` is implicit and enforced only by programmer discipline. If `Texture` dies first, `Drawable` has a dangling pointer.
-  - Reason: Simple initial design
-  - Future work: Use `std::shared_ptr` for shared textures, or a resource manager with handles
+- **All engine code is header-only**
+  - Reason: Convenient for a small single-target project.
+  - Future work: As the engine grows, move implementations to `.cpp` files to reduce recompilation
+    cascades. Consider precompiled headers for the SDL/spdlog includes.
 
-- **cmake-build-profile-arm64-debug in repo** - The `.gitignore` covers `cmake-build-*` but the `cmake-build-profile-arm64-debug/vcpkg_installed/` directory appears to exist in the working tree. Verify it's not tracked.
+- **Input system returns one event per frame, no diagonal movement**
+  - Reason: Priority chain is the simplest implementation.
+  - Future work: Return a `std::bitset<4>` or a small action-set to support simultaneous
+    directions and multi-action input.
 
-## Positives
+- **`Position::z` and `Size::depth_z` are carried everywhere but unused**
+  - Reason: Possibly reserved for 3D or z-ordering.
+  - Future work: Either use them (z-ordering for draw calls) or remove them to keep the 2D API
+    clean. If kept, document the intent.
 
-- **Clean namespace usage** - All engine types are in `will_engine` namespace, preventing global pollution
-- **`#pragma once`** on all headers - consistent include guard strategy
-- **`[[nodiscard]]`** on `getSdlRenderer()` and trailing return type on `getSdlWindow()` - good use of modern attributes where applied
-- **spdlog integration** - Proper dual-sink logging (console + file) from the start is mature infrastructure thinking
-- **vcpkg for dependencies** - Reproducible dependency management with a pinned baseline
-- **`const` parameters in constructors** - Consistent use of `const` for value parameters shows intent
-- **Separation of Window/Renderer/Texture/Drawable** - Even at this early stage, the decomposition into focused classes is clean and follows single-responsibility
+---
 
-## Verdict
+## ✅ Positives
+
+- **RAII wrappers for all SDL resources** — `Window`, `Renderer`, and `Texture` each own their SDL
+  object and destroy it in the destructor. No SDL resource is left floating in `main`.
+
+- **`[[nodiscard]]` on all getters** — `getSdlRenderer()`, `getSdlWindow()` are correctly marked,
+  preventing silent discard of returned resources.
+
+- **`shared_ptr` for texture lifetime** — Textures are kept alive via `shared_ptr` and the raw
+  pointer is shared down to `Drawable`. This prevents use-after-free if a texture outlives its
+  drawable.
+
+- **`spdlog` with both console and file sinks from the start** — Logging infrastructure is in
+  place before the engine is complex. This pays dividends during debugging.
+
+- **`virtual draw()` with correct `override`** — The polymorphic render interface is set up
+  correctly and the `override` keyword is present, so any future signature mismatch in a subclass
+  will be a compile error.
+
+- **`namespace will_engine` on all engine code** — Clean separation from user code and third-party
+  libraries.
+
+---
+
+## 🏁 Verdict
+
 - [ ] Approved - ship it
 - [ ] Approved with minor comments
 - [x] Changes required
 - [ ] Major rework needed
 
-The resource leaks (Renderer, Texture destructors) and Rule-of-Five violations are real bugs that will cause problems. Fix those first. The delta-time issue is the next priority since it makes the game unplayable at non-60Hz refresh rates. The API naming (`fps` parameter) should be addressed before more code is built on top of it. The architecture is clean for an early prototype - the foundation is solid once the RAII issues are resolved.
+Fix the two critical bugs (`IMG_Init` and Rule of Five) before this runs reliably on any target.
+The high-priority items (update/draw separation, dead code, `fps` rename, duplicated position
+state) are straightforward and clean up the API surface before it grows. Modernization items
+(`unique_ptr` deleters, proper `optional` usage, designated initialisers) are low-effort and
+significantly improve correctness guarantees.
