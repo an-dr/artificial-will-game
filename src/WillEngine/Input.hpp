@@ -14,9 +14,10 @@
 #include <SDL.h>
 #include <optional>
 
-namespace will_engine {
-
-    enum class InputEvent {
+namespace will_engine
+{
+    enum class InputEvent
+    {
         None,
         Up,
         Down,
@@ -24,12 +25,14 @@ namespace will_engine {
         Right,
     };
 
-    class Input {
+    class Input
+    {
     public:
         Input() = default;
 
-        auto get() -> std::optional<InputEvent> {
-            const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
+        auto get() -> std::optional<InputEvent>
+        {
+            const Uint8* keyState = SDL_GetKeyboardState(nullptr);
 
             bool movingLeft = keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT];
             bool movingRight = keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT];
@@ -37,15 +40,24 @@ namespace will_engine {
             bool movingDown = keyState[SDL_SCANCODE_S] || keyState[SDL_SCANCODE_DOWN];
 
             InputEvent event = InputEvent::None;
-            if (movingDown) {
+            if (movingDown)
+            {
                 event = InputEvent::Down;
-            } else if (movingLeft) {
+            }
+            else if (movingLeft)
+            {
                 event = InputEvent::Left;
-            } else if (movingRight) {
+            }
+            else if (movingRight)
+            {
                 event = InputEvent::Right;
-            } else if (movingUp) {
+            }
+            else if (movingUp)
+            {
                 event = InputEvent::Up;
-            } else {
+            }
+            else
+            {
                 event = InputEvent::None;
             }
             return event;

@@ -14,8 +14,10 @@
 #include "Drawable.hpp"
 
 
-namespace will_engine {
-    class Animation : public Drawable {
+namespace will_engine
+{
+    class Animation : public Drawable
+    {
         int frames_ = 0;
         int current_a_frame = 0;
         int frame_counter_ = 0;
@@ -23,18 +25,21 @@ namespace will_engine {
         Size animation_frame_size = Size(0, 0);
 
     public:
-        Animation(SDL_Texture *texture, const int frames, const int fps, const Size frame_size,
-                  const Size &size, const Position &position) : Drawable(
-                                                                    texture, size, position),
-                                                                frames_(frames), frames_per_a_frame(fps),
-                                                                animation_frame_size(frame_size) {
+        Animation(SDL_Texture* texture, const int frames, const int fps, const Size frame_size,
+                  const Size& size, const Position& position) : Drawable(texture, size, position),
+                                                                frames_(frames),
+                                                                frames_per_a_frame(fps),
+                                                                animation_frame_size(frame_size)
+        {
             type_ = DrawableType::Animation;
             setFrameAtTexture(0, 0, animation_frame_size.width_x, animation_frame_size.height_y);
         }
 
-        void draw(SDL_Renderer *renderer) override {
+        auto draw(SDL_Renderer* renderer) -> void override
+        {
             frame_counter_++;
-            if (frame_counter_ >= frames_per_a_frame) {
+            if (frame_counter_ >= frames_per_a_frame)
+            {
                 current_a_frame = (current_a_frame + 1) % frames_;
                 frame_counter_ = 0;
             }

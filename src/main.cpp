@@ -12,7 +12,8 @@
 #include "WillEngine/Texture.hpp"
 #include "WillEngine/Input.hpp"
 
-void init_logging() {
+void init_logging()
+{
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("game.log", true);
 
@@ -26,61 +27,78 @@ void init_logging() {
 
 using namespace will_engine;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
     init_logging();
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
     const auto window = Window("Artificial Will", 800, 600);
     const auto renderer = Renderer(window);
-    auto robot_william_png = Texture("assets/robot_william.png", renderer);
-    auto box_png = Texture("assets/box.png", renderer);
+    const auto robot_william_png = std::make_shared<Texture>("assets/robot_william.png", renderer);
+    const auto box_png = std::make_shared<Texture>("assets/box.png", renderer);
 
-    auto pos = Position(100,100);
-    Animation player(robot_william_png.getSdlTexture(), 4, 18, Size(64,64), Size(64, 64), pos);
-    Drawable box(box_png.getSdlTexture(), Size(64, 64), Position(200, 200));
+    std::vector<std::shared_ptr<Drawable>> drawables;
+
+    const auto box = std::make_shared<Drawable>(box_png->getSdlTexture(), Size(64, 64), Position(200, 200));
+    drawables.push_back(box);
+
+    auto player_pos = Position(100, 100);
+    const auto player = std::make_shared<Animation>(robot_william_png->getSdlTexture(), 4, 18, Size(64, 64),
+                                                    Size(64, 64),
+                                                    player_pos);
+    drawables.push_back(player);
 
     auto input = will_engine::Input();
 
     spdlog::info("Game started");
     bool running = true;
-    while (running) {
+    while (running)
+    {
         // Handle input
         SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
                 running = false;
             }
         }
 
         // Render
         renderer.startFrame();
-        renderer.draw(box);
-        renderer.draw(player);
 
-        if (auto ev = input.get()) {
-            switch (ev.value()) {
-                case InputEvent::Down:
-                    pos.y += 2; // Also fixed direction - see below
-                    break;
-                case InputEvent::Up:
-                    pos.y -= 2;
-                    break;
-                case InputEvent::Left:
-                    pos.x -= 2;
-                    break;
-                case InputEvent::Right:
-                    pos.x += 2;
-                    break;
-                case InputEvent::None:
-                    break;
+        for (auto& d : drawables)
+        {
+            renderer.draw(*d);
+        }
+
+        if (auto ev = input.get())
+        {
+            switch (ev.value())
+            {
+            case InputEvent::Down:
+                player_pos.y += 2; // Also fixed direction - see below
+                break;
+            case InputEvent::Up:
+                player_pos.y -= 2;
+                break;
+            case InputEvent::Left:
+                player_pos.x -= 2;
+                break;
+            case InputEvent::Right:
+                player_pos.x += 2;
+                break;
+            case InputEvent::None:
+                break;
             }
         }
 
-        player.setPosition(pos.x, pos.y);
+        player->setPosition(player_pos.x, player_pos.y);
 
         renderer.completeFrame();
     }

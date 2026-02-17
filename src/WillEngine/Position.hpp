@@ -12,16 +12,12 @@
 
 #pragma once
 
-namespace will_engine {
-    struct Position {
+namespace will_engine
+{
+    struct Position
+    {
         int x;
         int y;
         int z;
-
-        Position(const int x, const int y, const int z) : x(x), y(y), z(z) {
-        }
-
-        Position(const int x, const int y) : x(x), y(y), z(0) {
-        }
     };
 }
