@@ -7,13 +7,13 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include "WillEngine/Window.hpp"
-#include "WillEngine/Animation.hpp"
+#include "WillEngine/entity_components/Animation.hpp"
 #include "WillEngine/Renderer.hpp"
-#include "WillEngine/Texture.hpp"
-#include "WillEngine/Input.hpp"
+#include "WillEngine/entity_components/Texture.hpp"
+#include "WillEngine/World.hpp"
+#include "WillEngine/systems/Input.hpp"
 
-void init_logging()
-{
+void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("game.log", true);
 
@@ -27,22 +27,26 @@ void init_logging()
 
 using namespace will_engine;
 
-int main(int argc, char* argv[])
-{
+auto main(int argc, char *argv[]) -> int {
     init_logging();
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-    {
-        std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        spdlog::error("SDL_Init Error: {}", SDL_GetError());
         return 1;
     }
+
+    if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
+        spdlog::error("IMG_Init Error");
+    }
+
+    World w;
 
     const auto window = Window("Artificial Will", 800, 600);
     const auto renderer = Renderer(window);
     const auto robot_william_png = std::make_shared<Texture>("assets/robot_william.png", renderer);
     const auto box_png = std::make_shared<Texture>("assets/box.png", renderer);
 
-    std::vector<std::shared_ptr<Drawable>> drawables;
+    std::vector<std::shared_ptr<Drawable> > drawables;
 
     const auto box = std::make_shared<Drawable>(box_png->getSdlTexture(), Size(64, 64), Position(200, 200));
     drawables.push_back(box);
@@ -57,14 +61,11 @@ int main(int argc, char* argv[])
 
     spdlog::info("Game started");
     bool running = true;
-    while (running)
-    {
+    while (running) {
         // Handle input
         SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            if (event.type == SDL_QUIT)
-            {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
                 running = false;
             }
         }
@@ -72,29 +73,26 @@ int main(int argc, char* argv[])
         // Render
         renderer.startFrame();
 
-        for (auto& d : drawables)
-        {
+        for (auto &d: drawables) {
             renderer.draw(*d);
         }
 
-        if (auto ev = input.get())
-        {
-            switch (ev.value())
-            {
-            case InputEvent::Down:
-                player_pos.y += 2; // Also fixed direction - see below
-                break;
-            case InputEvent::Up:
-                player_pos.y -= 2;
-                break;
-            case InputEvent::Left:
-                player_pos.x -= 2;
-                break;
-            case InputEvent::Right:
-                player_pos.x += 2;
-                break;
-            case InputEvent::None:
-                break;
+        if (auto ev = input.get()) {
+            switch (ev.value()) {
+                case InputEvent::Down:
+                    player_pos.y += 2; // Also fixed direction - see below
+                    break;
+                case InputEvent::Up:
+                    player_pos.y -= 2;
+                    break;
+                case InputEvent::Left:
+                    player_pos.x -= 2;
+                    break;
+                case InputEvent::Right:
+                    player_pos.x += 2;
+                    break;
+                case InputEvent::None:
+                    break;
             }
         }
 
