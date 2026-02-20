@@ -12,6 +12,7 @@
 #include "WillEngine/entity_components/Texture.hpp"
 #include "WillEngine/World.hpp"
 #include "WillEngine/systems/Input.hpp"
+#include "ulog.h"
 
 void init_logging() {
     auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -59,7 +60,7 @@ auto main(int argc, char *argv[]) -> int {
 
     auto input = will_engine::Input();
 
-    spdlog::info("Game started");
+    ulog_info("Game started");
     bool running = true;
     while (running) {
         // Handle input
@@ -104,6 +105,6 @@ auto main(int argc, char *argv[]) -> int {
 
     SDL_Quit();
 
-    spdlog::info("Game is closed");
+    ulog_info("Game is closed");
     return 0;
 }

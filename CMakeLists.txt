@@ -20,6 +20,10 @@ target_link_libraries(artificial_will PRIVATE
         SDL2_image::SDL2_image
 )
 
+target_compile_definitions(microlog PRIVATE ULOG_BUILD_COLOR=1
+        ULOG_BUILD_TIME=0 # BUG! Does not work!
+        ULOG_BUILD_SOURCE_LOCATION=1
+)
 
 # Copy SDL2.dll to build directory
 add_custom_command(TARGET artificial_will POST_BUILD
