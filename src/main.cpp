@@ -8,7 +8,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include "WillEngine/Window.hpp"
 #include "WillEngine/entity_components/Animation.hpp"
-#include "WillEngine/Renderer.hpp"
+#include "WillEngine/systems/Renderer.hpp"
 #include "WillEngine/entity_components/Texture.hpp"
 #include "WillEngine/World.hpp"
 #include "WillEngine/systems/Input.hpp"

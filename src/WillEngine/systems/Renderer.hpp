@@ -14,8 +14,8 @@
 #include <optional>
 #include <SDL.h>
 #include <stdexcept>
-#include "entity_components/Drawable.hpp"
-#include "Window.hpp"
+#include "../entity_components/Drawable.hpp"
+#include "../Window.hpp"
 
 namespace will_engine
 {
