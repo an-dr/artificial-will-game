@@ -8,6 +8,7 @@ find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(box2d CONFIG REQUIRED)
 find_package(abcmake REQUIRED)
+find_package(microlog CONFIG REQUIRED)
 
 add_main_component(${PROJECT_NAME})
 
@@ -16,9 +17,10 @@ target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2
         box2d::box2d
         SDL2_image::SDL2_image
+        microlog::microlog
 )
 
-target_compile_definitions(microlog PRIVATE
+target_compile_definitions(artificial_will PRIVATE
         ULOG_BUILD_COLOR=1
         ULOG_BUILD_TIME=1
         ULOG_BUILD_SOURCE_LOCATION=1

@@ -1,12 +1,13 @@
 {
   "name": "artificial-will",
   "version": "0.1.0",
-  "builtin-baseline": "b716eeeed940216e91d67d6fbcee69c603665aef",
+  "builtin-baseline": "7387b3695526c0f759b20d32be0d10a755e76182",
   "dependencies": [
     "abcmake",
     "sdl2",
     "sdl2-image",
     "box2d",
-    "entt"
+    "entt",
+    "microlog"
   ]
 }
