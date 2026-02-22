@@ -6,7 +6,6 @@
     "abcmake",
     "sdl2",
     "sdl2-image",
-    "spdlog",
     "box2d",
     "entt"
   ]

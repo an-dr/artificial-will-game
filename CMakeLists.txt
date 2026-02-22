@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 23)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(box2d CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
 find_package(abcmake REQUIRED)
 
 add_main_component(${PROJECT_NAME})
@@ -16,13 +15,14 @@ target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
         box2d::box2d
-        spdlog::spdlog
         SDL2_image::SDL2_image
 )
 
-target_compile_definitions(microlog PRIVATE ULOG_BUILD_COLOR=1
-        ULOG_BUILD_TIME=0 # BUG! Does not work!
+target_compile_definitions(microlog PRIVATE
+        ULOG_BUILD_COLOR=1
+        ULOG_BUILD_TIME=1
         ULOG_BUILD_SOURCE_LOCATION=1
+        ULOG_BUILD_TOPICS_MODE=ULOG_BUILD_TOPICS_MODE_DYNAMIC
 )
 
 # Copy SDL2.dll to build directory

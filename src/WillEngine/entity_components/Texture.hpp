@@ -14,33 +14,27 @@
 
 #include <string>
 #include <SDL_image.h>
-#include "../systems/Renderer.hpp"
+#include "../Window.hpp"
 
 
-namespace will_engine
-{
-    class Texture
-    {
-        SDL_Texture* texture_ = nullptr;
+namespace will_engine {
+    class Texture {
+        SDL_Texture *texture_ = nullptr;
 
     public:
-        Texture(const std::string& file_path, const Renderer& renderer)
-        {
-            SDL_Texture* t = IMG_LoadTexture(renderer.getSdlRenderer(), file_path.c_str());
-            if (!t)
-            {
+        Texture(const std::string &file_path, const Window &window) {
+            SDL_Texture *t = IMG_LoadTexture(window.getSdlRenderer(), file_path.c_str());
+            if (!t) {
                 throw std::runtime_error("No image");
             }
             texture_ = t;
         }
 
-        ~Texture()
-        {
+        ~Texture() {
             SDL_DestroyTexture(texture_);
         }
 
-        auto getSdlTexture() -> SDL_Texture*
-        {
+        auto getSdlTexture() -> SDL_Texture * {
             return texture_;
         }
     };
