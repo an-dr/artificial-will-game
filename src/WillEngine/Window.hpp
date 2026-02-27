@@ -20,14 +20,18 @@ namespace will_engine {
         SDL_Window *window_;
         SDL_Renderer *renderer_;
 
+        static constexpr int BACKGROUND_R = 0;
+        static constexpr int BACKGROUND_G = 0;
+        static constexpr int BACKGROUND_B = 0;
+        static constexpr int BACKGROUND_A = 255;
+
     public:
-        Window(const std::string &title, const int width, const int height) {
-            window_ = SDL_CreateWindow(title.c_str(),
+        Window(const std::string &title, const int width, const int height)
+            : window_(SDL_CreateWindow(title.c_str(),
                                        SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
                                        width, height,
-                                       SDL_WINDOW_SHOWN);
-
+                                       SDL_WINDOW_SHOWN)) {
             if (window_ == nullptr) {
                 SDL_Quit();
                 throw std::runtime_error("Cannot create a window");
@@ -50,19 +54,19 @@ namespace will_engine {
             SDL_DestroyWindow(window_);
         }
 
-        /// Start new frame
-        auto startFrame() const -> void {
-            SDL_SetRenderDrawColor(getSdlRenderer(), 0, 0, 0, 255);
-            SDL_RenderClear(getSdlRenderer());
-        }
-
-        auto draw(Drawable &drawable) const -> void {
-            drawable.draw(getSdlRenderer());
-        }
-
-        auto completeFrame() const -> void {
-            SDL_RenderPresent(getSdlRenderer());
-        }
+        // /// Start new frame
+        // auto startFrame() const -> void {
+        //     SDL_SetRenderDrawColor(getSdlRenderer(), BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, BACKGROUND_A);
+        //     SDL_RenderClear(getSdlRenderer());
+        // }
+        //
+        // auto draw(Drawable &drawable) const -> void {
+        //     drawable.draw(getSdlRenderer());
+        // }
+        //
+        // auto completeFrame() const -> void {
+        //     SDL_RenderPresent(getSdlRenderer());
+        // }
 
         [[nodiscard]] auto getSdlWindow() const -> SDL_Window * { return window_; }
 

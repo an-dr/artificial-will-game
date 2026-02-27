@@ -51,3 +51,4 @@ build
 cmake-build-*
 
 *.log
+/vcpkg_installed/

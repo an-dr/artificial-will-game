@@ -44,37 +44,61 @@ cppint main(int argc, char* argv[]) {
 #include <iostream>
 #include <print>
 #include <box2d/box2d.h>
-#include "WillEngine/Window.hpp"
-#include "WillEngine/entity_components/Animation.hpp"
-#include "WillEngine/entity_components/Texture.hpp"
-#include "WillEngine/World.hpp"
-#include "WillEngine/systems/Input.hpp"
+#include <memory>
+#include "Window.hpp"
+#include "entity_components/Animation.hpp"
+#include "entity_components/Texture.hpp"
+#include "World.hpp"
+#include "systems/Input.hpp"
 #include "ulog.h"
+#include "systems/AssetManager.hpp"
 
 
-namespace will_engine {
-    class Game {
+namespace will_engine
+{
+    class Game
+    {
+        std::string name_;
         Window window_;
         Input sys_input_;
+        AssetManager assets;
+        std::unique_ptr<World> world_;
 
     public:
-        Game() : window_(Window("Artificial Will", 800, 600)) {
+        Game(const std::string& name = "Game") : name_(name), window_(Window(name_, 800, 600)),
+                                                 assets(AssetManager(window_.getSdlRenderer()))
+        {
             ulog_topic_add("Game", ULOG_OUTPUT_ALL, ULOG_LEVEL_DEBUG);
 
-            if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            if (SDL_Init(SDL_INIT_VIDEO) != 0)
+            {
                 ulog_error("SDL_Init Error: {}", SDL_GetError());
             }
 
-            if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
+            if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
+            {
                 ulog_error("IMG_Init Error: {}", IMG_GetError());
             }
         }
 
-        auto start() -> int {
+        auto loadTexture(const std::string& name, const std::string& file_path) -> std::string
+        {
+            return assets.loadTexture(name, file_path);
+        }
+
+        auto loadWorld(std::unique_ptr<World>& world) -> void
+        {
+            world_ = std::move(world);
+        }
+
+        auto start() -> int
+        {
             const auto robot_william_png = std::make_shared<Texture>("assets/robot_william.png", window_);
             const auto box_png = std::make_shared<Texture>("assets/box.png", window_);
+            ulog_t_info("Game", "%s started", name_.c_str());
 
-            std::vector<std::shared_ptr<Drawable> > drawables;
+#if 0
+            std::vector<std::shared_ptr<Drawable>> drawables;
 
             const auto box = std::make_shared<Drawable>(box_png->getSdlTexture(), Size(64, 64), Position(200, 200));
             drawables.push_back(box);
@@ -87,13 +111,15 @@ namespace will_engine {
 
             auto input = will_engine::Input();
 
-            ulog_t_info("Game", "Game started");
             bool running = true;
-            while (running) {
+            while (running)
+            {
                 // Handle input
                 SDL_Event event;
-                while (SDL_PollEvent(&event)) {
-                    if (event.type == SDL_QUIT) {
+                while (SDL_PollEvent(&event))
+                {
+                    if (event.type == SDL_QUIT)
+                    {
                         running = false;
                     }
                 }
@@ -101,26 +127,29 @@ namespace will_engine {
                 // Render
                 window_.startFrame();
 
-                for (auto &d: drawables) {
+                for (auto& d : drawables)
+                {
                     window_.draw(*d);
                 }
 
-                if (auto ev = input.get()) {
-                    switch (ev.value()) {
-                        case InputEvent::Down:
-                            player_pos.y += 2; // Also fixed direction - see below
-                            break;
-                        case InputEvent::Up:
-                            player_pos.y -= 2;
-                            break;
-                        case InputEvent::Left:
-                            player_pos.x -= 2;
-                            break;
-                        case InputEvent::Right:
-                            player_pos.x += 2;
-                            break;
-                        case InputEvent::None:
-                            break;
+                if (auto ev = input.get())
+                {
+                    switch (ev.value())
+                    {
+                    case InputEvent::Down:
+                        player_pos.y += 2; // Also fixed direction - see below
+                        break;
+                    case InputEvent::Up:
+                        player_pos.y -= 2;
+                        break;
+                    case InputEvent::Left:
+                        player_pos.x -= 2;
+                        break;
+                    case InputEvent::Right:
+                        player_pos.x += 2;
+                        break;
+                    case InputEvent::None:
+                        break;
                     }
                 }
 
@@ -129,10 +158,11 @@ namespace will_engine {
                 window_.completeFrame();
             }
 
+#endif // if 0
 
             SDL_Quit();
 
-            ulog_t_info("Game", "Game is closed");
+            ulog_t_info("Game", "%s closed", name_.c_str());
 
 
             return 0;

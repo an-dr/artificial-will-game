@@ -20,7 +20,7 @@ target_link_libraries(artificial_will PRIVATE
         microlog::microlog
 )
 
-target_compile_definitions(artificial_will PRIVATE
+target_compile_definitions(microlog PRIVATE
         ULOG_BUILD_COLOR=1
         ULOG_BUILD_TIME=1
         ULOG_BUILD_SOURCE_LOCATION=1

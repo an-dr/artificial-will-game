@@ -14,21 +14,33 @@
 #include <SDL.h>
 #include <entt/entt.hpp>
 
-namespace will_engine {
-    class World {
+#include "entity_components/ComponentObject.hpp"
+
+namespace will_engine
+{
+    class World
+    {
         entt::registry registry_; // All entities/components here
 
     public:
-        World() {
+        World()
+        {
             auto entity = registry_.create();
             registry_.emplace<int>(entity, 1);
         }
 
-        // Systems
-        void update_movement(float dt);
 
-        void update_animation(float dt);
+        auto addEntity(const ComponentObject& object) -> entt::entity
+        {
+            const auto entity = registry_.create();
+            registry_.emplace<ComponentObject>(entity, object);
+            return entity;
+        }
 
-        void render(SDL_Renderer *renderer);
+        template <typename Component>
+        auto add(entt::entity entity_id, const Component& component) -> void
+        {
+            registry_.emplace<Component>(entity_id, component);
+        }
     };
 }
