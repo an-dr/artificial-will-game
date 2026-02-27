@@ -23,11 +23,7 @@ namespace will_engine
         entt::registry registry_; // All entities/components here
 
     public:
-        World()
-        {
-            auto entity = registry_.create();
-            registry_.emplace<int>(entity, 1);
-        }
+        World() = default;
 
 
         auto addEntity(const ComponentObject& object) -> entt::entity
@@ -37,10 +33,10 @@ namespace will_engine
             return entity;
         }
 
-        template <typename Component>
-        auto add(entt::entity entity_id, const Component& component) -> void
+        template <typename Component, typename... Args>
+        auto addComponent(entt::entity entity, Args&&... args) -> void
         {
-            registry_.emplace<Component>(entity_id, component);
+            registry_.emplace<Component>(entity, std::forward<Args>(args)...);
         }
     };
 }

@@ -13,13 +13,14 @@
 #pragma once
 #include <SDL.h>
 #include <entt/entt.hpp>
-#include "../entity_components/ComponentDrawable.hpp"
 
 
-namespace will_engine {
-    class Rendering {
-        SDL_Renderer *renderer_;
-        entt::registry *registry_; // All entities/components here
+namespace will_engine
+{
+    class Rendering
+    {
+        SDL_Renderer* renderer_;
+        entt::registry* registry_ = nullptr; // All entities/components here
 
         static constexpr int BACKGROUND_R = 0;
         static constexpr int BACKGROUND_G = 0;
@@ -27,32 +28,57 @@ namespace will_engine {
         static constexpr int BACKGROUND_A = 255;
 
     public:
-        Rendering(entt::registry &registry, SDL_Renderer *renderer)
-            : registry_(&registry) {
-            if (renderer == nullptr) {
+        Rendering(SDL_Renderer* renderer)
+        {
+            if (renderer == nullptr)
+            {
                 throw std::runtime_error("renderer_ == nullptr");
             }
             renderer_ = renderer;
         }
 
+        auto setRegistry(entt::registry* registry) -> void
+        {
+            registry_ = registry;
+        }
+
         /// Start new frame
-        auto startFrame() const -> void {
+        auto startFrame() const -> void
+        {
             SDL_SetRenderDrawColor(renderer_, BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, BACKGROUND_A);
             SDL_RenderClear(renderer_);
         }
 
 
-        auto draw() const -> void {
-            auto view = renderer_.view<ComponentDrawable>();
-            for (auto entity: view) {
+        auto draw() const -> void
+        {
+            startFrame();
 
-                // drawable.draw(getSdlRenderer());
+            if (registry_)
+            {
+                // for (const auto& [name, texture] : textures_)
+                // {
+                //     SDL_Rect texture_frame = {};
+                //     SDL_Rect location_frame = {};
+                //
+                //     SDL_RenderCopy(renderer_, texture, &texture_frame, &location_frame);
+                // }
             }
+
+
+            completeFrame();
+
+
+            // auto view = renderer_.view<ComponentTexture>();
+            // for (auto entity: view) {
+            //
+            //     // drawable.draw(getSdlRenderer());
+            // }
         }
 
-        auto completeFrame() const -> void {
+        auto completeFrame() const -> void
+        {
             SDL_RenderPresent(renderer_);
         }
     };
 }
-

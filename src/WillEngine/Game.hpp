@@ -52,6 +52,7 @@ cppint main(int argc, char* argv[]) {
 #include "systems/Input.hpp"
 #include "ulog.h"
 #include "systems/AssetManager.hpp"
+#include "systems/Rendering.hpp"
 
 
 namespace will_engine
@@ -59,14 +60,14 @@ namespace will_engine
     class Game
     {
         std::string name_;
-        Window window_;
-        Input sys_input_;
-        AssetManager assets;
+        std::unique_ptr<Window> window_;
+        std::unique_ptr<Input> sys_input_;
+        std::unique_ptr<Rendering> sys_rendering_;
+        std::unique_ptr<AssetManager> assets_;
         std::unique_ptr<World> world_;
 
     public:
-        Game(const std::string& name = "Game") : name_(name), window_(Window(name_, 800, 600)),
-                                                 assets(AssetManager(window_.getSdlRenderer()))
+        Game(const std::string& name = "Game") : name_(name)
         {
             ulog_topic_add("Game", ULOG_OUTPUT_ALL, ULOG_LEVEL_DEBUG);
 
@@ -79,22 +80,28 @@ namespace will_engine
             {
                 ulog_error("IMG_Init Error: {}", IMG_GetError());
             }
+
+            // Now construct members that depend on SDL
+            window_ = std::make_unique<Window>(name_, 800, 600);
+            assets_ = std::make_unique<AssetManager>(window_->getSdlRenderer());
+            sys_rendering_ = std::make_unique<Rendering>(window_->getSdlRenderer());
         }
 
         auto loadTexture(const std::string& name, const std::string& file_path) -> std::string
         {
-            return assets.loadTexture(name, file_path);
+            return assets_->loadTexture(name, file_path);
         }
 
         auto loadWorld(std::unique_ptr<World>& world) -> void
         {
+            world_.reset(); // destroy old world!!!
             world_ = std::move(world);
         }
 
         auto start() -> int
         {
-            const auto robot_william_png = std::make_shared<Texture>("assets/robot_william.png", window_);
-            const auto box_png = std::make_shared<Texture>("assets/box.png", window_);
+            const auto robot_william_png = std::make_shared<Texture>("assets/robot_william.png", *window_);
+            const auto box_png = std::make_shared<Texture>("assets/box.png", *window_);
             ulog_t_info("Game", "%s started", name_.c_str());
 
 #if 0
@@ -159,6 +166,20 @@ namespace will_engine
             }
 
 #endif // if 0
+
+            bool running = true;
+            while (running)
+            {
+                // Handle input
+                SDL_Event event;
+                while (SDL_PollEvent(&event))
+                {
+                    if (event.type == SDL_QUIT)
+                    {
+                        running = false;
+                    }
+                }
+            }
 
             SDL_Quit();
 
