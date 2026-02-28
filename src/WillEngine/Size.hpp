@@ -11,19 +11,11 @@
 // *************************************************************************
 
 #pragma once
-#include <string>
 
-#include "../Point2d.hpp"
-
-namespace will_engine
-{
-    struct ComponentTexture
-    {
-        std::string name;
-        Point2d frame_position;
-        Point2d rect_b;
-        int frames_total;
-        int frame_current;
-        int fps;
+namespace will_engine {
+    struct Size {
+        int x;
+        int y;
+        int z;
     };
 }

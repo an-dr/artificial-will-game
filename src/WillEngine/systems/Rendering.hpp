@@ -67,10 +67,10 @@ namespace will_engine {
                     }
 
                     SDL_Rect texture_frame = {
-                        comp_tex.rect_a.x,
-                        comp_tex.rect_a.y,
-                        comp_tex.rect_b.x - comp_tex.rect_a.x,
-                        comp_tex.rect_b.y - comp_tex.rect_a.y
+                        comp_tex.frame_position.x,
+                        comp_tex.frame_position.y,
+                        comp_tex.rect_b.x - comp_tex.frame_position.x,
+                        comp_tex.rect_b.y - comp_tex.frame_position.y
                     };
 
                     auto &geo = registry_->get<ComponentObject>(entity);
