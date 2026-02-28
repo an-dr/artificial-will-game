@@ -17,43 +17,41 @@
 #include <unordered_map>
 
 
-namespace will_engine
-{
-    class AssetManager
-    {
-        SDL_Renderer* renderer_;
-        std::unordered_map<std::string, SDL_Texture*> textures_;
+namespace will_engine {
+    class AssetManager {
+        SDL_Renderer *renderer_;
+        std::unordered_map<std::string, SDL_Texture *> textures_;
 
     public:
-        explicit AssetManager(SDL_Renderer* renderer) :
-            renderer_(renderer)
-        {
+        explicit AssetManager(SDL_Renderer *renderer) : renderer_(renderer) {
         }
 
-        ~AssetManager()
-        {
-            // Free textures
-            for (const auto& [name, texture] : textures_)
-            {
-                textures_.erase(name);
+        ~AssetManager() {
+            for (const auto &[name, texture]: textures_) {
                 SDL_DestroyTexture(texture);
             }
+            textures_.clear();
         }
 
-        auto loadTexture(const std::string& name, const std::string& file_path) -> std::string
-        {
-            if (const auto it = textures_.find(name); it != textures_.end())
-            {
+        auto loadTexture(const std::string &name, const std::string &file_path) -> std::string {
+            if (const auto it = textures_.find(name); it != textures_.end()) {
                 return name; // Already loaded
             }
 
-            SDL_Texture* t = IMG_LoadTexture(renderer_, file_path.c_str());
-            if (!t)
-            {
+            SDL_Texture *t = IMG_LoadTexture(renderer_, file_path.c_str());
+            if (!t) {
                 throw std::runtime_error("No image");
             }
 
+            textures_[name] = t;
             return name;
+        }
+
+        auto getTexture(const std::string &name) -> SDL_Texture * {
+            if (const auto it = textures_.find(name); it != textures_.end()) {
+                return it->second;
+            }
+            return nullptr;
         }
     };
 }

@@ -14,10 +14,10 @@ auto main(int argc, char* argv[]) -> int
     auto box_tex = game.loadTexture("box.png", "assets/box.png");
 
     auto world = std::make_unique<World>();
-    auto box = world->addEntity({10, 10, 0, 64, 64, 0});
-    auto box2 = world->addEntity({100, 100, 0, 64, 64, 0});
-    world->addComponent<ComponentTexture>(box, box_tex, Point2d{0, 0}, Point2d{64, 64});
-    world->addComponent<ComponentTexture>(box2, box_tex, Point2d{0, 0}, Point2d{64, 64});
+    auto box = world->addEntity({.x=10, .y=10, .z=0, .size_x=64, .size_y=64, .size_z=0});
+    auto box2 = world->addEntity({.x=100, .y=100, .z=0, .size_x=64, .size_y=64, .size_z=0});
+    world->addComponent<ComponentTexture>(box, box_tex, Point2d{.x=0, .y=0}, Point2d{.x=64, .y=64});
+    world->addComponent<ComponentTexture>(box2, box_tex, Point2d{.x=0, .y=0}, Point2d{.x=64, .y=64});
 
     game.loadWorld(world);
 

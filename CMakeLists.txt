@@ -9,6 +9,7 @@ find_package(SDL2_image CONFIG REQUIRED)
 find_package(box2d CONFIG REQUIRED)
 find_package(abcmake REQUIRED)
 find_package(microlog CONFIG REQUIRED)
+find_package(EnTT CONFIG REQUIRED)
 
 add_main_component(${PROJECT_NAME})
 
@@ -18,6 +19,7 @@ target_link_libraries(artificial_will PRIVATE
         box2d::box2d
         SDL2_image::SDL2_image
         microlog::microlog
+        EnTT::EnTT
 )
 
 target_compile_definitions(microlog PRIVATE

@@ -25,6 +25,9 @@ namespace will_engine
     public:
         World() = default;
 
+        auto getRegistry() -> entt::registry* {
+            return &registry_;
+        }
 
         auto addEntity(const ComponentObject& object) -> entt::entity
         {
