@@ -12,12 +12,16 @@
 
 #pragma once
 
-namespace will_engine
-{
-    struct Size
-    {
-        int width_x;
-        int height_y;
-        int depth_z;
-    };
-}
+
+namespace will_engine {
+
+struct ComponentGeometry {
+    int x;
+    int y;
+    int z;
+    int size_x;
+    int size_y;
+    int size_z;
+};
+
+} // will_engine

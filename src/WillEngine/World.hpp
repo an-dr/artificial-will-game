@@ -14,32 +14,30 @@
 #include <SDL.h>
 #include <entt/entt.hpp>
 
-#include "entity_components/ComponentObject.hpp"
+#include "entity_components/ComponentGeometry.hpp"
 
-namespace will_engine
-{
-    class World
-    {
-        entt::registry registry_; // All entities/components here
+namespace will_engine {
 
-    public:
-        World() = default;
+class World {
+    entt::registry registry_; // All entities/components here
 
-        auto getRegistry() -> entt::registry* {
-            return &registry_;
-        }
+public:
+    World() = default;
 
-        auto addEntity(const ComponentObject& object) -> entt::entity
-        {
-            const auto entity = registry_.create();
-            registry_.emplace<ComponentObject>(entity, object);
-            return entity;
-        }
+    auto getRegistry() -> entt::registry * {
+        return &registry_;
+    }
 
-        template <typename Component, typename... Args>
-        auto addComponent(entt::entity entity, Args&&... args) -> void
-        {
-            registry_.emplace<Component>(entity, std::forward<Args>(args)...);
-        }
-    };
-}
+    auto addEntity(const ComponentGeometry &object) -> entt::entity {
+        const auto entity = registry_.create();
+        registry_.emplace<ComponentGeometry>(entity, object);
+        return entity;
+    }
+
+    template <typename Component, typename... Args>
+    auto addComponent(entt::entity entity, Args &&... args) -> void {
+        registry_.emplace<Component>(entity, std::forward<Args>(args)...);
+    }
+};
+
+} // will_engine

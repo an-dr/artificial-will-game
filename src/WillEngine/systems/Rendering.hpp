@@ -11,87 +11,104 @@
 // *************************************************************************
 
 #pragma once
+#include <cmath>
 #include <SDL.h>
 #include <entt/entt.hpp>
-#include "../entity_components/ComponentObject.hpp"
+#include "../entity_components/ComponentGeometry.hpp"
 #include "../entity_components/ComponentTexture.hpp"
 #include "AssetManager.hpp"
 
 
 namespace will_engine {
-    class Rendering {
-        AssetManager *assets_ = nullptr;
-        SDL_Renderer *renderer_ = nullptr;
-        entt::registry *registry_ = nullptr; // All entities/components here
+class Rendering {
+    AssetManager *assets_ = nullptr;
+    SDL_Renderer *renderer_ = nullptr;
+    entt::registry *registry_ = nullptr; // All entities/components here
 
-        static constexpr int BACKGROUND_R = 0;
-        static constexpr int BACKGROUND_G = 0;
-        static constexpr int BACKGROUND_B = 0;
-        static constexpr int BACKGROUND_A = 255;
+    static constexpr int BACKGROUND_R = 0;
+    static constexpr int BACKGROUND_G = 0;
+    static constexpr int BACKGROUND_B = 0;
+    static constexpr int BACKGROUND_A = 255;
 
-    public:
-        Rendering(SDL_Renderer *renderer, AssetManager *asset_manager) {
-            if (renderer == nullptr) {
-                throw std::runtime_error("renderer_ == nullptr");
-            }
 
-            if (asset_manager == nullptr) {
-                throw std::runtime_error("asset_manager == nullptr");
-            }
+    auto draw_static(const ComponentGeometry *geo, const ComponentTexture *tex,
+                     SDL_Texture *sdl_tex) const -> void {
+        SDL_Rect texture_frame = {.x = tex->frame_position.x,
+                                  .y = tex->frame_position.y,
+                                  .w = tex->frame_size.x,
+                                  .h = tex->frame_size.y};
+        SDL_Rect location_frame = {.x = geo->x, .y = geo->y, .w = geo->size_x, .h = geo->size_y};
+        SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
+    }
 
-            assets_ = asset_manager;
-            renderer_ = renderer;
+    auto process_animation(float dt, ComponentTexture *tex) -> void {
+        if (tex->frames_total < 2)
+            return;
+
+        // calculate frames
+        float d_secs = dt / 1000.0f;
+        auto d_frames = tex->fps * d_secs;
+
+        // advance and wrap frame_current into [0, frames_total)
+        tex->frame_current = fmod(tex->frame_current + d_frames, (float)tex->frames_total);
+
+        // round to nearest int
+        int current_frame = static_cast<int>(tex->frame_current);
+
+        // update the frame position (horizontal sprite sheet, y stays 0)
+        tex->frame_position.x = current_frame * tex->frame_size.x;
+        tex->frame_position.y = 0;
+    }
+
+public:
+    Rendering(SDL_Renderer *renderer, AssetManager *asset_manager) {
+        if (renderer == nullptr) {
+            throw std::runtime_error("renderer_ == nullptr");
         }
 
-        auto setRegistry(entt::registry *registry) -> void {
-            registry_ = registry;
+        if (asset_manager == nullptr) {
+            throw std::runtime_error("asset_manager == nullptr");
         }
 
-        /// Start new frame
-        auto startFrame() const -> void {
-            SDL_SetRenderDrawColor(renderer_, BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, BACKGROUND_A);
-            SDL_RenderClear(renderer_);
-        }
+        assets_ = asset_manager;
+        renderer_ = renderer;
+    }
+
+    auto setRegistry(entt::registry *registry) -> void { registry_ = registry; }
+
+    /// Start new frame
+    auto startFrame() const -> void {
+        SDL_SetRenderDrawColor(renderer_, BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, BACKGROUND_A);
+        SDL_RenderClear(renderer_);
+    }
 
 
-        auto draw() const -> void {
-            startFrame();
+    auto draw(float dt_ms) -> void {
+        startFrame();
 
-            if (registry_) {
-                auto textures = registry_->view<ComponentTexture>();
-                for (auto entity: textures) {
-                    auto &comp_tex = textures.get<ComponentTexture>(entity);
-                    auto texture = assets_->getTexture(comp_tex.name);
-                    if (!texture) {
-                        throw std::runtime_error("texture is not found!");
-                    }
+        if (registry_) {
+            auto textures = registry_->view<ComponentTexture>();
+            for (auto entity : textures) {
+                auto &tex = textures.get<ComponentTexture>(entity);
 
-                    SDL_Rect texture_frame = {
-                        comp_tex.frame_position.x,
-                        comp_tex.frame_position.y,
-                        comp_tex.rect_b.x - comp_tex.frame_position.x,
-                        comp_tex.rect_b.y - comp_tex.frame_position.y
-                    };
-
-                    auto &geo = registry_->get<ComponentObject>(entity);
-                    SDL_Rect location_frame = {geo.x, geo.y, geo.size_x, geo.size_y};
-                    SDL_RenderCopy(renderer_, texture, &texture_frame, &location_frame);
+                auto sdl_tex = assets_->getTexture(tex.name);
+                if (!sdl_tex) {
+                    throw std::runtime_error("texture is not found!");
                 }
+
+                auto geo = registry_->try_get<ComponentGeometry>(entity);
+                if (!geo) {
+                    throw std::runtime_error("entity does not exist!");
+                }
+
+                process_animation(dt_ms, &tex);
+                draw_static(geo, &tex, sdl_tex);
             }
-
-
-            completeFrame();
-
-
-            // auto view = renderer_.view<ComponentTexture>();
-            // for (auto entity: view) {
-            //
-            //     // drawable.draw(getSdlRenderer());
-            // }
         }
 
-        auto completeFrame() const -> void {
-            SDL_RenderPresent(renderer_);
-        }
-    };
-}
+        completeFrame();
+    }
+
+    auto completeFrame() const -> void { SDL_RenderPresent(renderer_); }
+};
+} // namespace will_engine

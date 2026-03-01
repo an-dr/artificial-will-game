@@ -46,8 +46,6 @@ cppint main(int argc, char* argv[]) {
 #include <box2d/box2d.h>
 #include <memory>
 #include "Window.hpp"
-#include "entity_components/Animation.hpp"
-#include "entity_components/Texture.hpp"
 #include "World.hpp"
 #include "systems/Input.hpp"
 #include "ulog.h"
@@ -56,121 +54,102 @@ cppint main(int argc, char* argv[]) {
 
 
 namespace will_engine {
-    class Game {
-        std::string name_;
-        std::unique_ptr<Window> window_;
-        std::unique_ptr<Input> sys_input_;
-        std::unique_ptr<Rendering> sys_rendering_;
-        std::unique_ptr<AssetManager> assets_;
-        std::unique_ptr<World> world_;
+class Game {
+    std::string name_;
+    std::unique_ptr<Window> window_;
+    std::unique_ptr<Input> sys_input_;
+    std::unique_ptr<Rendering> sys_rendering_;
+    std::unique_ptr<AssetManager> assets_;
+    std::unique_ptr<World> world_;
+    uint64_t last_update_ms_ = 0;
 
-    public:
-        Game(const std::string &name = "Game") : name_(name) {
-            ulog_topic_add("Game", ULOG_OUTPUT_ALL, ULOG_LEVEL_DEBUG);
+    // update time for systems, return delta
+    auto update_time() -> uint64_t {
+        auto now = SDL_GetTicks64();
+        auto delta = now - last_update_ms_;
+        last_update_ms_ = now;
+        return delta;
+    }
 
-            if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-                ulog_error("SDL_Init Error: {}", SDL_GetError());
-            }
+public:
+    Game(const std::string &name = "Game") : name_(name) {
+        ulog_topic_add("Game", ULOG_OUTPUT_ALL, ULOG_LEVEL_DEBUG);
 
-            if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
-                ulog_error("IMG_Init Error: {}", IMG_GetError());
-            }
-
-            // Now construct members that depend on SDL
-            window_ = std::make_unique<Window>(name_, 800, 600);
-            assets_ = std::make_unique<AssetManager>(window_->getSdlRenderer());
-            sys_rendering_ = std::make_unique<Rendering>(window_->getSdlRenderer(), assets_.get());
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            ulog_error("SDL_Init Error: {}", SDL_GetError());
         }
 
-        auto loadTexture(const std::string &name, const std::string &file_path) -> std::string {
-            return assets_->loadTexture(name, file_path);
+        if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0) {
+            ulog_error("IMG_Init Error: {}", IMG_GetError());
         }
 
-        auto loadWorld(std::unique_ptr<World> &world) -> void {
-            world_.reset(); // destroy old world!!!
-            world_ = std::move(world);
-            sys_rendering_->setRegistry(world_->getRegistry());
-        }
+        // Now construct members that depend on SDL
+        window_ = std::make_unique<Window>(name_, 800, 600);
+        assets_ = std::make_unique<AssetManager>(window_->getSdlRenderer());
+        sys_rendering_ = std::make_unique<Rendering>(window_->getSdlRenderer(), assets_.get());
+    }
 
-        auto start() -> int {
-            ulog_t_info("Game", "%s started", name_.c_str());
+    auto loadTexture(const std::string &name, const std::string &file_path) -> std::string {
+        return assets_->loadTexture(name, file_path);
+    }
+
+    auto loadWorld(std::unique_ptr<World> &world) -> void {
+        world_.reset(); // destroy old world!!!
+        world_ = std::move(world);
+        sys_rendering_->setRegistry(world_->getRegistry());
+    }
+
+    auto start() -> int {
+        ulog_t_info("Game", "%s started", name_.c_str());
 
 #if 0
-            std::vector<std::shared_ptr<Drawable> > drawables;
+        auto input = will_engine::Input();
 
-            const auto box = std::make_shared<Drawable>(box_png->getSdlTexture(), Size(64, 64), Position(200, 200));
-            drawables.push_back(box);
-
-            auto player_pos = Position(100, 100);
-            const auto player = std::make_shared<Animation>(robot_william_png->getSdlTexture(), 4, 18, Size(64, 64),
-                                                            Size(64, 64),
-                                                            player_pos);
-            drawables.push_back(player);
-
-            auto input = will_engine::Input();
-
-            bool running = true;
-            while (running) {
-                // Handle input
-                SDL_Event event;
-                while (SDL_PollEvent(&event)) {
-                    if (event.type == SDL_QUIT) {
-                        running = false;
-                    }
-                }
-
-                // Render
-                window_.startFrame();
-
-                for (auto &d: drawables) {
-                    window_.draw(*d);
-                }
-
-                if (auto ev = input.get()) {
-                    switch (ev.value()) {
-                        case InputEvent::Down:
-                            player_pos.y += 2; // Also fixed direction - see below
-                            break;
-                        case InputEvent::Up:
-                            player_pos.y -= 2;
-                            break;
-                        case InputEvent::Left:
-                            player_pos.x -= 2;
-                            break;
-                        case InputEvent::Right:
-                            player_pos.x += 2;
-                            break;
-                        case InputEvent::None:
-                            break;
-                    }
-                }
-
-                player->setPosition(player_pos.x, player_pos.y);
-
-                window_.completeFrame();
+        if (auto ev = input.get()) {
+            switch (ev.value()) {
+            case InputEvent::Down:
+                player_pos.y += 2; // Also fixed direction - see below
+                break;
+            case InputEvent::Up:
+                player_pos.y -= 2;
+                break;
+            case InputEvent::Left:
+                player_pos.x -= 2;
+                break;
+            case InputEvent::Right:
+                player_pos.x += 2;
+                break;
+            case InputEvent::None:
+                break;
             }
-
+        }
 #endif // if 0
 
-            bool running = true;
-            while (running) {
-                // Handle input
-                SDL_Event event;
-                while (SDL_PollEvent(&event)) {
-                    if (event.type == SDL_QUIT) {
-                        running = false;
-                    }
+        bool running = true;
+
+        update_time();
+        while (running) {
+            auto dt_ms = update_time();
+
+            // Handle input
+            SDL_Event event;
+            while (SDL_PollEvent(&event)) {
+                if (event.type == SDL_QUIT) {
+                    running = false;
                 }
-                sys_rendering_->draw();
             }
 
-
-            SDL_Quit();
-
-            ulog_t_info("Game", "%s closed", name_.c_str());
-
-
-            return 0;
+            sys_rendering_->draw(dt_ms);
         }
-    };
+
+
+        SDL_Quit();
+
+        ulog_t_info("Game", "%s closed", name_.c_str());
+
+
+        return 0;
+    }
+};
+
 } // will_engine

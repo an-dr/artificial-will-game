@@ -14,16 +14,18 @@
 #include <string>
 
 #include "../Point2d.hpp"
+#include "../Size3d.hpp"
 
-namespace will_engine
-{
-    struct ComponentTexture
-    {
-        std::string name;
-        Point2d frame_position;
-        Point2d rect_b;
-        int frames_total;
-        int frame_current;
-        int fps;
-    };
-}
+
+namespace will_engine {
+
+struct ComponentTexture {
+    std::string name;
+    Point2d frame_position;
+    Size3d frame_size;
+    unsigned int frames_total;
+    float frame_current; // float to progress smoothly
+    unsigned int fps;
+};
+
+} // will_engine

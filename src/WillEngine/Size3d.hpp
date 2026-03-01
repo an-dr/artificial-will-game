@@ -12,14 +12,12 @@
 
 #pragma once
 
-
 namespace will_engine {
-    struct ComponentObject {
-        int x;
-        int y;
-        int z;
-        int size_x;
-        int size_y;
-        int size_z;
-    };
-}
+
+struct Size3d {
+    int x;
+    int y;
+    int z;
+};
+
+} // will_engine
