@@ -43,6 +43,7 @@ cppint main(int argc, char* argv[]) {
 #include <SDL_image.h>  // Add this
 #include <iostream>
 #include <print>
+#include <utility>
 #include <box2d/box2d.h>
 #include <memory>
 #include "Window.hpp"
@@ -72,7 +73,7 @@ class Game {
     }
 
 public:
-    Game(const std::string &name = "Game") : name_(name) {
+    Game(std::string name = "Game") : name_(std::move(name)) {
         ulog_topic_add("Game", ULOG_OUTPUT_ALL, ULOG_LEVEL_DEBUG);
 
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -87,6 +88,7 @@ public:
         window_ = std::make_unique<Window>(name_, 800, 600);
         assets_ = std::make_unique<AssetManager>(window_->getSdlRenderer());
         sys_rendering_ = std::make_unique<Rendering>(window_->getSdlRenderer(), assets_.get());
+        sys_input_ = std::make_unique<Input>();
     }
 
     auto loadTexture(const std::string &name, const std::string &file_path) -> std::string {
@@ -97,6 +99,7 @@ public:
         world_.reset(); // destroy old world!!!
         world_ = std::move(world);
         sys_rendering_->setRegistry(world_->getRegistry());
+        sys_input_->setRegistry(world_->getRegistry());
     }
 
     auto start() -> int {
@@ -139,7 +142,9 @@ public:
                 }
             }
 
-            sys_rendering_->draw(dt_ms);
+            sys_input_->process();
+            sys_rendering_->process(dt_ms);
+
         }
 
 

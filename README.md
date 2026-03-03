@@ -15,3 +15,7 @@ Most of the deps are resolved via [vcpkg](https://github.com/microsoft/vcpkg) so
 1. Install vcpkg
 2. Specify VCPKG_ROOT environment variable
 3. Add to your CMake profile `--preset  vcpkg`
+
+## Demo
+
+![demo.gif](docs/demo.gif)

@@ -12,55 +12,46 @@
 
 #pragma once
 #include <SDL.h>
-#include <optional>
+#include "../entity_components/ComponentPlayer.hpp"
+#include "../entity_components/ComponentGeometry.hpp"
+#include "BaseSystem.hpp"
 
-namespace will_engine
-{
-    enum class InputEvent
-    {
-        None,
-        Up,
-        Down,
-        Left,
-        Right,
-    };
+namespace will_engine {
 
-    class Input
-    {
-    public:
-        Input() = default;
 
-        auto get() -> std::optional<InputEvent>
-        {
-            const Uint8* keyState = SDL_GetKeyboardState(nullptr);
+class Input : public BaseSystem {
 
-            bool movingLeft = keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT];
-            bool movingRight = keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT];
-            bool movingUp = keyState[SDL_SCANCODE_W] || keyState[SDL_SCANCODE_UP];
-            bool movingDown = keyState[SDL_SCANCODE_S] || keyState[SDL_SCANCODE_DOWN];
+public:
+    Input() = default;
 
-            InputEvent event = InputEvent::None;
-            if (movingDown)
-            {
-                event = InputEvent::Down;
-            }
-            else if (movingLeft)
-            {
-                event = InputEvent::Left;
-            }
-            else if (movingRight)
-            {
-                event = InputEvent::Right;
-            }
-            else if (movingUp)
-            {
-                event = InputEvent::Up;
-            }
-            else
-            {
-                event = InputEvent::None;
-            }
-            return event;
+    auto process() -> void {
+
+        const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
+        bool movingLeft = keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT];
+        bool movingRight = keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT];
+        bool movingUp = keyState[SDL_SCANCODE_W] || keyState[SDL_SCANCODE_UP];
+        bool movingDown = keyState[SDL_SCANCODE_S] || keyState[SDL_SCANCODE_DOWN];
+
+        constexpr int d_koef = 2;
+
+        int dx = 0;
+        int dy = 0;
+        if (movingLeft)
+            dx -= d_koef;
+        if (movingRight)
+            dx += d_koef;
+        if (movingUp)
+            dy -= d_koef;
+        if (movingDown)
+            dy += d_koef;
+
+        auto players = getRegistry()->view<ComponentPlayer>();
+        for (auto entity : players) {
+            auto &p_geo = getRegistry()->get<ComponentGeometry>(entity);
+            p_geo.x += dx;
+            p_geo.y += dy;
         }
-    };
+
+    }
+};
 } // engine

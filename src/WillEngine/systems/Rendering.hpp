@@ -17,13 +17,13 @@
 #include "../entity_components/ComponentGeometry.hpp"
 #include "../entity_components/ComponentTexture.hpp"
 #include "AssetManager.hpp"
+#include "BaseSystem.hpp"
 
 
 namespace will_engine {
-class Rendering {
+class Rendering : public BaseSystem {
     AssetManager *assets_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
-    entt::registry *registry_ = nullptr; // All entities/components here
 
     static constexpr int BACKGROUND_R = 0;
     static constexpr int BACKGROUND_G = 0;
@@ -41,7 +41,7 @@ class Rendering {
         SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
     }
 
-    auto process_animation(float dt, ComponentTexture *tex) -> void {
+    static auto process_animation(float dt, ComponentTexture *tex) -> void {
         if (tex->frames_total < 2)
             return;
 
@@ -50,7 +50,8 @@ class Rendering {
         auto d_frames = tex->fps * d_secs;
 
         // advance and wrap frame_current into [0, frames_total)
-        tex->frame_current = fmod(tex->frame_current + d_frames, (float)tex->frames_total);
+        tex->frame_current = fmod(tex->frame_current + d_frames,
+                                  static_cast<float>(tex->frames_total));
 
         // round to nearest int
         int current_frame = static_cast<int>(tex->frame_current);
@@ -60,8 +61,18 @@ class Rendering {
         tex->frame_position.y = 0;
     }
 
+
+    /// Start new frame
+    auto startFrame() const -> void {
+        SDL_SetRenderDrawColor(renderer_, BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, BACKGROUND_A);
+        SDL_RenderClear(renderer_);
+    }
+
+
+    auto completeFrame() const -> void { SDL_RenderPresent(renderer_); }
+
 public:
-    Rendering(SDL_Renderer *renderer, AssetManager *asset_manager) {
+    Rendering(SDL_Renderer *renderer, AssetManager *asset_manager) : BaseSystem() {
         if (renderer == nullptr) {
             throw std::runtime_error("renderer_ == nullptr");
         }
@@ -74,20 +85,11 @@ public:
         renderer_ = renderer;
     }
 
-    auto setRegistry(entt::registry *registry) -> void { registry_ = registry; }
-
-    /// Start new frame
-    auto startFrame() const -> void {
-        SDL_SetRenderDrawColor(renderer_, BACKGROUND_R, BACKGROUND_G, BACKGROUND_B, BACKGROUND_A);
-        SDL_RenderClear(renderer_);
-    }
-
-
-    auto draw(float dt_ms) -> void {
+    auto process(const uint64_t dt_ms) const -> void {
         startFrame();
 
-        if (registry_) {
-            auto textures = registry_->view<ComponentTexture>();
+        if (isRegisterSet()) {
+            auto textures = getRegistry()->view<ComponentTexture>();
             for (auto entity : textures) {
                 auto &tex = textures.get<ComponentTexture>(entity);
 
@@ -96,7 +98,7 @@ public:
                     throw std::runtime_error("texture is not found!");
                 }
 
-                auto geo = registry_->try_get<ComponentGeometry>(entity);
+                auto geo = getRegistry()->try_get<ComponentGeometry>(entity);
                 if (!geo) {
                     throw std::runtime_error("entity does not exist!");
                 }
@@ -109,6 +111,5 @@ public:
         completeFrame();
     }
 
-    auto completeFrame() const -> void { SDL_RenderPresent(renderer_); }
 };
 } // namespace will_engine
