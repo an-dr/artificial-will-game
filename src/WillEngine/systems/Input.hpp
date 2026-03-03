@@ -12,8 +12,8 @@
 
 #pragma once
 #include <SDL.h>
-#include "../entity_components/ComponentPlayer.hpp"
 #include "../entity_components/ComponentGeometry.hpp"
+#include "../entity_components/ComponentPlayer.hpp"
 #include "BaseSystem.hpp"
 
 namespace will_engine {
@@ -46,12 +46,15 @@ public:
             dy += d_koef;
 
         auto players = getRegistry()->view<ComponentPlayer>();
-        for (auto entity : players) {
-            auto &p_geo = getRegistry()->get<ComponentGeometry>(entity);
-            p_geo.x += dx;
-            p_geo.y += dy;
-        }
 
+        for (auto entity : players) {
+            auto p_geo = getRegistry()->try_get<ComponentGeometry>(entity);
+            if (!p_geo) {
+                throw std::runtime_error("No geometry for this entity");
+            }
+            p_geo->x += dx;
+            p_geo->y += dy;
+        }
     }
 };
-} // engine
+}  // namespace will_engine
