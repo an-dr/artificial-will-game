@@ -35,23 +35,19 @@ cppint main(int argc, char* argv[]) {
  */
 
 #pragma once
-#include <memory>
-#include "Window.hpp"
-#include "systems/Input.hpp"
-#include "ulog.h"
-#include <SDL.h>
-#include <SDL_image.h>  // Add this
 #include <iostream>
+#include <memory>
 #include <print>
 #include <utility>
+#include <SDL.h>
+#include <SDL_image.h>  // Add this
 #include <box2d/box2d.h>
-#include <memory>
 #include "Window.hpp"
 #include "World.hpp"
-#include "systems/Input.hpp"
-#include "ulog.h"
 #include "systems/AssetManager.hpp"
+#include "systems/Input.hpp"
 #include "systems/Rendering.hpp"
+#include "ulog.h"
 
 
 namespace will_engine {
@@ -96,10 +92,11 @@ public:
     }
 
     auto loadWorld(std::unique_ptr<World> &world) -> void {
-        world_.reset(); // destroy old world!!!
+        world_.reset();  // destroy old world!!!
         world_ = std::move(world);
         sys_rendering_->setRegistry(world_->getRegistry());
         sys_input_->setRegistry(world_->getRegistry());
+        sys_input_->setPhysicsWorld(world_->getPhysicsWorld());
     }
 
     auto start() -> int {
@@ -126,7 +123,7 @@ public:
                 break;
             }
         }
-#endif // if 0
+#endif  // if 0
 
         bool running = true;
 
@@ -142,9 +139,8 @@ public:
                 }
             }
 
-            sys_input_->process();
+            sys_input_->process(dt_ms / 1000.0f, World::PPM);
             sys_rendering_->process(dt_ms);
-
         }
 
 
@@ -157,4 +153,4 @@ public:
     }
 };
 
-} // will_engine
+}  // namespace will_engine
