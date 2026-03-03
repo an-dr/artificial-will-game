@@ -37,7 +37,8 @@ class Rendering : public BaseSystem {
                                   .y = tex->frame_position.y,
                                   .w = tex->frame_size.x,
                                   .h = tex->frame_size.y};
-        SDL_Rect location_frame = {.x = geo->x, .y = geo->y, .w = geo->size_x, .h = geo->size_y};
+        SDL_Rect location_frame = {.x = static_cast<int>(geo->x), .y = static_cast<int>(geo->y),
+                                   .w = geo->size_x, .h = geo->size_y};
         SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
     }
 

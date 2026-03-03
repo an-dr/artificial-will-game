@@ -12,16 +12,12 @@
 
 #pragma once
 
-
 namespace will_engine {
 
-struct ComponentGeometry {
-    float x;
-    float y;
-    int z;
-    int size_x;
-    int size_y;
-    int size_z;
+struct ComponentCollider {
+    int hitbox_w;
+    int hitbox_h;
+    bool pushable = false;
 };
 
 } // will_engine

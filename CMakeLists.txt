@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
-find_package(box2d CONFIG REQUIRED)
 find_package(abcmake REQUIRED)
 find_package(microlog CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
@@ -14,10 +13,11 @@ find_package(glm CONFIG REQUIRED)
 
 add_main_component(${PROJECT_NAME})
 
+target_include_directories(artificial_will PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
 target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
-        box2d::box2d
         SDL2_image::SDL2_image
         microlog::microlog
         EnTT::EnTT

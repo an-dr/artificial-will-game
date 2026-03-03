@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmake --build build --config Debug)",
+      "Bash(cmake --build cmake-build-debug-visual-studio --config Debug)",
+      "Bash(cmake --preset default)",
+      "Bash(cmake --preset vcpkg -B cmake-build-debug-visual-studio)"
+    ]
+  }
+}

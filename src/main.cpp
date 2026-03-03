@@ -1,7 +1,7 @@
 #include <print>
 
 #include "WillEngine/Game.hpp"
-#include "WillEngine/entity_components/ComponentPhysical.hpp"
+#include "WillEngine/entity_components/ComponentCollider.hpp"
 #include "WillEngine/entity_components/ComponentPlayer.hpp"
 #include "WillEngine/entity_components/ComponentTexture.hpp"
 
@@ -17,32 +17,31 @@ auto main(int argc, char* argv[]) -> int
 
     auto world = std::make_unique<World>();
 
-    // Boxes
-    auto box = world->addPhysicalEntity({.x = 10, .y = 10, .z = 0, .size_x = 64, .size_y = 64,
-                                 .size_z = 0}, b2_staticBody, 40, 56);
+    // Static boxes
+    auto box = world->addEntity({.x = 10, .y = 10, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
+    world->addComponent<ComponentCollider>(box, 40, 56);
     world->addComponent<ComponentTexture>(box, box_tex, Point2d{.x = 0, .y = 0},
                                           Size3d{.x = 64, .y = 64});
-    auto box2 = world->addPhysicalEntity({.x = 100, .y = 100, .z = 0, .size_x = 64, .size_y = 64,
-                                  .size_z = 0}, b2_staticBody, 40, 56);
+
+    auto box2 = world->addEntity({.x = 100, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
+    world->addComponent<ComponentCollider>(box2, 40, 56);
     world->addComponent<ComponentTexture>(box2, box_tex, Point2d{.x = 0, .y = 0},
                                           Size3d{.x = 64, .y = 64});
-    auto box3 = world->addPhysicalEntity({.x = 300, .y = 100, .z = 0, .size_x = 64, .size_y = 64,
-                                  .size_z = 0}, b2_dynamicBody, 40, 56, 0, 0,
-                                  /*mass=*/20.0f, /*friction=*/0.5f, /*linear_damping=*/5.0f);
+
+    // Pushable box
+    auto box3 = world->addEntity({.x = 300, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
+    world->addComponent<ComponentCollider>(box3, 40, 56, true);
     world->addComponent<ComponentTexture>(box3, box_tex, Point2d{.x = 0, .y = 0},
                                           Size3d{.x = 64, .y = 64});
 
-    // Player - dynamic so it collides with static bodies; velocity is set to 0 each frame
-    // when no key held, giving instant stop without needing damping
-    auto player = world->addPhysicalEntity({.x = 200, .y = 200, .z = 0, .size_x = 64, .size_y = 64,
-                                    .size_z = 0}, b2_dynamicBody, 40, 64, 0, 0, 1.0f, 0.0f, 0.0f,
-                                    /*hitbox_radius=*/0.1f);
+    // Player
+    auto player = world->addEntity({.x = 200, .y = 200, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
+    world->addComponent<ComponentCollider>(player, 40, 56);
     world->addComponent<ComponentTexture>(player, player_tex, Point2d{.x = 0, .y = 0},
                                           Size3d{.x = 64, .y = 64}, 4u, 0.0f, 8u);
     world->addComponent<ComponentPlayer>(player, "Player One", 1U);
 
     game.loadWorld(world);
 
-    // ... some init
     return game.start();
 }

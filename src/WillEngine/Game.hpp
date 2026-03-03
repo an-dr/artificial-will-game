@@ -41,7 +41,6 @@ cppint main(int argc, char* argv[]) {
 #include <utility>
 #include <SDL.h>
 #include <SDL_image.h>  // Add this
-#include <box2d/box2d.h>
 #include "Window.hpp"
 #include "World.hpp"
 #include "systems/AssetManager.hpp"
@@ -96,7 +95,6 @@ public:
         world_ = std::move(world);
         sys_rendering_->setRegistry(world_->getRegistry());
         sys_input_->setRegistry(world_->getRegistry());
-        sys_input_->setPhysicsWorld(world_->getPhysicsWorld());
     }
 
     auto start() -> int {
@@ -139,7 +137,7 @@ public:
                 }
             }
 
-            sys_input_->process(dt_ms / 1000.0f, World::PPM);
+            sys_input_->process(dt_ms / 1000.0f);
             sys_rendering_->process(dt_ms);
         }
 
