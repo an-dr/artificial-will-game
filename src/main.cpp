@@ -19,12 +19,12 @@ auto main(int argc, char* argv[]) -> int
 
     // Static boxes
     auto box = world->addEntity({.x = 10, .y = 10, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
-    world->addComponent<ComponentCollider>(box, 40, 56);
+    world->addComponent<ComponentCollider>(box, 40, 56, true);
     world->addComponent<ComponentTexture>(box, box_tex, Point2d{.x = 0, .y = 0},
                                           Size3d{.x = 64, .y = 64});
 
     auto box2 = world->addEntity({.x = 100, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
-    world->addComponent<ComponentCollider>(box2, 40, 56);
+    world->addComponent<ComponentCollider>(box2, 40, 56, true);
     world->addComponent<ComponentTexture>(box2, box_tex, Point2d{.x = 0, .y = 0},
                                           Size3d{.x = 64, .y = 64});
 

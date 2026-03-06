@@ -24,98 +24,144 @@
 namespace will_engine {
 
 class Input : public BaseSystem {
-public:
-    Input() = default;
 
-    auto process(float dt) const -> void {
-        const Uint8 *keyState = SDL_GetKeyboardState(nullptr);
+    static auto makeAABB(const ComponentGeometry &geometry, const ComponentCollider &collider) -> c2AABB {
+        float offset_x = (geometry.size_x - collider.hitbox_w) / 2.0f;
+        float offset_y = (geometry.size_y - collider.hitbox_h) / 2.0f;
+        c2AABB bounding_box;
+        bounding_box.min = {geometry.x + offset_x, geometry.y + offset_y};
+        bounding_box.max = {geometry.x + offset_x + collider.hitbox_w, geometry.y + offset_y + collider.hitbox_h};
+        return bounding_box;
+    }
 
-        glm::vec2 dir{0.0f, 0.0f};
-        if (keyState[SDL_SCANCODE_A] || keyState[SDL_SCANCODE_LEFT])  dir.x -= 1.0f;
-        if (keyState[SDL_SCANCODE_D] || keyState[SDL_SCANCODE_RIGHT]) dir.x += 1.0f;
-        if (keyState[SDL_SCANCODE_W] || keyState[SDL_SCANCODE_UP])    dir.y -= 1.0f;
-        if (keyState[SDL_SCANCODE_S] || keyState[SDL_SCANCODE_DOWN])  dir.y += 1.0f;
-        if (glm::length(dir) > 0.0f) dir = glm::normalize(dir);
+    static auto get_direction([[maybe_unused]] unsigned int player_id) -> glm::vec2 {
+        const Uint8 *key_state = SDL_GetKeyboardState(nullptr);
 
-        constexpr float speed = 160.0f;  // pixels/second
-        float dx = dir.x * speed * dt;
-        float dy = dir.y * speed * dt;
+        glm::vec2 direction{0.0f, 0.0f};
+        if (key_state[SDL_SCANCODE_A] || key_state[SDL_SCANCODE_LEFT])
+            direction.x -= 1.0f;
+        if (key_state[SDL_SCANCODE_D] || key_state[SDL_SCANCODE_RIGHT])
+            direction.x += 1.0f;
+        if (key_state[SDL_SCANCODE_W] || key_state[SDL_SCANCODE_UP])
+            direction.y -= 1.0f;
+        if (key_state[SDL_SCANCODE_S] || key_state[SDL_SCANCODE_DOWN])
+            direction.y += 1.0f;
+        if (glm::length(direction) > 0.0f)
+            direction = glm::normalize(direction);
+        return direction;
+    }
 
-        auto players = getRegistry()->view<ComponentPlayer, ComponentGeometry, ComponentCollider>();
-        auto colliders = getRegistry()->view<ComponentGeometry, ComponentCollider>();
+    auto move_player([[maybe_unused]] unsigned int player_id, float delta_time, glm::vec2 direction) {
+        auto registry = getRegistry();
+        if (!registry)
+            return;
 
-        for (auto player_ent : players) {
-            auto &pg = players.get<ComponentGeometry>(player_ent);
-            auto &pc = players.get<ComponentCollider>(player_ent);
+        auto players = registry->view<ComponentPlayer>();
 
-            pg.x += dx;
-            pg.y += dy;
+        for (auto player_entity : players) {
+            auto &player = players.get<ComponentPlayer>(player_entity);
+            if (player.player_id == player_id) {
+                auto geometry = registry->try_get<ComponentGeometry>(player_entity);
+                if (!geometry)
+                    throw std::runtime_error("Cannot mova a player. No such entity found");
 
-            // Resolve collisions against every other collider
-            for (auto other_ent : colliders) {
-                if (other_ent == player_ent) continue;
+                constexpr float speed = 160.0f; // pixels/second
+                float delta_x = direction.x * speed * delta_time;
+                float delta_y = direction.y * speed * delta_time;
 
-                auto &og = colliders.get<ComponentGeometry>(other_ent);
-                auto &oc = colliders.get<ComponentCollider>(other_ent);
+                geometry->x += delta_x;
+                geometry->y += delta_y;
+                return;
+            }
+        }
+    }
 
-                c2AABB pa = makeAABB(pg, pc);
-                c2AABB oa = makeAABB(og, oc);
+    auto resolve_collisions() {
+        auto registry = getRegistry();
+        auto players = registry->view<ComponentPlayer, ComponentGeometry, ComponentCollider>();
+        auto colliders = registry->view<ComponentGeometry, ComponentCollider>();
 
-                c2Manifold m = {};
-                c2AABBtoAABBManifold(pa, oa, &m);
-                if (m.count == 0) continue;
+        for (auto player_entity : players) {
+            auto &player_geometry = players.get<ComponentGeometry>(player_entity);
+            auto &player_collider = players.get<ComponentCollider>(player_entity);
 
-                float depth = m.depths[0];
+            for (auto collider_entity : colliders) {
+                if (collider_entity == player_entity)
+                    continue;
 
-                if (oc.pushable) {
+                auto &other_geometry = colliders.get<ComponentGeometry>(collider_entity);
+                auto &other_collider = colliders.get<ComponentCollider>(collider_entity);
+
+                c2AABB player_aabb = makeAABB(player_geometry, player_collider);
+                c2AABB other_aabb = makeAABB(other_geometry, other_collider);
+
+                c2Manifold manifold = {};
+                c2AABBtoAABBManifold(player_aabb, other_aabb, &manifold);
+                if (manifold.count == 0)
+                    continue;
+
+                float penetration_depth = manifold.depths[0];
+
+                if (other_collider.pushable) {
                     // Try to push the box
-                    float new_x = og.x + m.n.x * depth;
-                    float new_y = og.y + m.n.y * depth;
+                    float pushed_x = other_geometry.x + manifold.n.x * penetration_depth;
+                    float pushed_y = other_geometry.y + manifold.n.y * penetration_depth;
 
                     // Check if pushed position collides with any static collider
-                    ComponentGeometry pushed_g = og;
-                    pushed_g.x = new_x;
-                    pushed_g.y = new_y;
-                    c2AABB pushed_aabb = makeAABB(pushed_g, oc);
+                    ComponentGeometry pushed_geometry = other_geometry;
+                    pushed_geometry.x = pushed_x;
+                    pushed_geometry.y = pushed_y;
+                    c2AABB pushed_aabb = makeAABB(pushed_geometry, other_collider);
 
                     bool blocked = false;
-                    for (auto wall_ent : colliders) {
-                        if (wall_ent == other_ent || wall_ent == player_ent) continue;
-                        auto &wg = colliders.get<ComponentGeometry>(wall_ent);
-                        auto &wc = colliders.get<ComponentCollider>(wall_ent);
-                        if (wc.pushable) continue;
-                        if (c2AABBtoAABB(pushed_aabb, makeAABB(wg, wc))) {
+                    for (auto wall_entity : colliders) {
+                        if (wall_entity == collider_entity || wall_entity == player_entity)
+                            continue;
+                        auto &wall_geometry = colliders.get<ComponentGeometry>(wall_entity);
+                        auto &wall_collider = colliders.get<ComponentCollider>(wall_entity);
+                        if (wall_collider.pushable)
+                            continue;
+                        if (c2AABBtoAABB(pushed_aabb, makeAABB(wall_geometry, wall_collider))) {
                             blocked = true;
                             break;
                         }
                     }
 
                     if (!blocked) {
-                        og.x = new_x;
-                        og.y = new_y;
+                        other_geometry.x = pushed_x;
+                        other_geometry.y = pushed_y;
                     } else {
                         // Box against a wall — treat as static
-                        pg.x -= m.n.x * depth;
-                        pg.y -= m.n.y * depth;
+                        player_geometry.x -= manifold.n.x * penetration_depth;
+                        player_geometry.y -= manifold.n.y * penetration_depth;
                     }
                 } else {
                     // Static wall — push player out
-                    pg.x -= m.n.x * depth;
-                    pg.y -= m.n.y * depth;
+                    player_geometry.x -= manifold.n.x * penetration_depth;
+                    player_geometry.y -= manifold.n.y * penetration_depth;
                 }
             }
         }
     }
 
-private:
-    static auto makeAABB(const ComponentGeometry &g, const ComponentCollider &c) -> c2AABB {
-        float ox = (g.size_x - c.hitbox_w) / 2.0f;
-        float oy = (g.size_y - c.hitbox_h) / 2.0f;
-        c2AABB aabb;
-        aabb.min = {g.x + ox, g.y + oy};
-        aabb.max = {g.x + ox + c.hitbox_w, g.y + oy + c.hitbox_h};
-        return aabb;
+public:
+    Input() = default;
+
+    auto process(float delta_time) -> void {
+        auto players = getRegistry()->view<ComponentPlayer, ComponentGeometry, ComponentCollider>();
+
+        for (auto player_entity : players) {
+            auto &player = players.get<ComponentPlayer>(player_entity);
+            auto &player_geometry = players.get<ComponentGeometry>(player_entity);
+            auto &player_collider = players.get<ComponentCollider>(player_entity);
+
+            auto direction = get_direction(player.player_id);
+            move_player(player.player_id, delta_time, direction);
+
+            resolve_collisions();
+        }
     }
+
 };
 
-}  // namespace will_engine
+} // namespace will_engine
