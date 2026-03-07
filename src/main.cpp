@@ -8,8 +8,7 @@
 
 using namespace will_engine;
 
-auto main(int argc, char* argv[]) -> int
-{
+auto main(int argc, char *argv[]) -> int {
     auto game = Game("Artificial Will");
 
     auto player_tex = game.loadTexture("player.png", "assets/robot_william.png");
@@ -17,29 +16,31 @@ auto main(int argc, char* argv[]) -> int
 
     auto world = std::make_unique<World>();
 
-    // Static boxes
-    auto box = world->addEntity({.x = 10, .y = 10, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
-    world->addComponent<ComponentCollider>(box, 40, 56, true);
-    world->addComponent<ComponentTexture>(box, box_tex, Point2d{.x = 0, .y = 0},
-                                          Size3d{.x = 64, .y = 64});
 
-    auto box2 = world->addEntity({.x = 100, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
-    world->addComponent<ComponentCollider>(box2, 40, 56, true);
-    world->addComponent<ComponentTexture>(box2, box_tex, Point2d{.x = 0, .y = 0},
-                                          Size3d{.x = 64, .y = 64});
+    world->add(
+        ComponentGeometry{.x = 10, .y = 10, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
+        ComponentTexture{box_tex, Point2d{.x = 0, .y = 0}, Size3d{.x = 64, .y = 64}},
+        ComponentCollider{40, 56, true}
+        );
 
-    // Pushable box
-    auto box3 = world->addEntity({.x = 300, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
-    world->addComponent<ComponentCollider>(box3, 40, 56, true);
-    world->addComponent<ComponentTexture>(box3, box_tex, Point2d{.x = 0, .y = 0},
-                                          Size3d{.x = 64, .y = 64});
+    world->add(
+        ComponentGeometry{.x = 200, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
+        ComponentTexture{box_tex, Point2d{.x = 0, .y = 0}, Size3d{.x = 64, .y = 64}},
+        ComponentCollider{40, 56, true}
+        );
 
-    // Player
-    auto player = world->addEntity({.x = 200, .y = 200, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0});
-    world->addComponent<ComponentCollider>(player, 40, 56);
-    world->addComponent<ComponentTexture>(player, player_tex, Point2d{.x = 0, .y = 0},
-                                          Size3d{.x = 64, .y = 64}, 4u, 0.0f, 8u);
-    world->addComponent<ComponentPlayer>(player, "Player One", 1U);
+    world->add(
+        ComponentGeometry{.x = 300, .y = 100, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
+        ComponentTexture{box_tex, Point2d{.x = 0, .y = 0}, Size3d{.x = 64, .y = 64}},
+        ComponentCollider{40, 56, true}
+        );
+
+    world->addPlayer(
+        "Player One",
+        ComponentGeometry{.x = 200, .y = 200, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
+        ComponentTexture{player_tex, Point2d{.x = 0, .y = 0},
+                         Size3d{.x = 64, .y = 64}, 4u, 0.0f, 8u},
+        ComponentCollider{40, 56});
 
     game.loadWorld(world);
 

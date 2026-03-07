@@ -25,12 +25,14 @@ namespace will_engine {
 
 class Input : public BaseSystem {
 
-    static auto makeAABB(const ComponentGeometry &geometry, const ComponentCollider &collider) -> c2AABB {
+    static auto makeAABB(const ComponentGeometry &geometry,
+                         const ComponentCollider &collider) -> c2AABB {
         float offset_x = (geometry.size_x - collider.hitbox_w) / 2.0f;
         float offset_y = (geometry.size_y - collider.hitbox_h) / 2.0f;
         c2AABB bounding_box;
         bounding_box.min = {geometry.x + offset_x, geometry.y + offset_y};
-        bounding_box.max = {geometry.x + offset_x + collider.hitbox_w, geometry.y + offset_y + collider.hitbox_h};
+        bounding_box.max = {geometry.x + offset_x + collider.hitbox_w,
+                            geometry.y + offset_y + collider.hitbox_h};
         return bounding_box;
     }
 
@@ -51,7 +53,8 @@ class Input : public BaseSystem {
         return direction;
     }
 
-    auto move_player([[maybe_unused]] unsigned int player_id, float delta_time, glm::vec2 direction) {
+    auto move_player([[maybe_unused]] unsigned int player_id, float delta_time,
+                     glm::vec2 direction) {
         auto registry = getRegistry();
         if (!registry)
             return;
@@ -152,8 +155,6 @@ public:
 
         for (auto player_entity : players) {
             auto &player = players.get<ComponentPlayer>(player_entity);
-            auto &player_geometry = players.get<ComponentGeometry>(player_entity);
-            auto &player_collider = players.get<ComponentCollider>(player_entity);
 
             auto direction = get_direction(player.player_id);
             move_player(player.player_id, delta_time, direction);
