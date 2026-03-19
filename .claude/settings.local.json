@@ -4,7 +4,15 @@
       "Bash(cmake --build build --config Debug)",
       "Bash(cmake --build cmake-build-debug-visual-studio --config Debug)",
       "Bash(cmake --preset default)",
-      "Bash(cmake --preset vcpkg -B cmake-build-debug-visual-studio)"
+      "Bash(cmake --preset vcpkg -B cmake-build-debug-visual-studio)",
+      "Bash(cmake --build build)",
+      "Bash(cmake --build cmake-build-profile-arm64-debug)",
+      "Bash(echo \"INCLUDE=$INCLUDE\")",
+      "Bash(echo \"LIB=$LIB\")",
+      "Bash(where cl.exe)",
+      "Read(//c/Program Files/Microsoft Visual Studio//**)",
+      "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio//**)",
+      "Bash(grep -E \"^memory$|^string|^vector\")"
     ]
   }
 }

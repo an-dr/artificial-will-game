@@ -29,10 +29,10 @@ class Game {
     std::string name_;
     std::unique_ptr<Window> window_;
     std::unique_ptr<Input> sys_input_;
-    std::unique_ptr<Rendering> sys_rendering_;
+    std::unique_ptr<Rendering<int>> sys_rendering_;
     std::unique_ptr<MovementAndCollision> sys_movement_;
     std::unique_ptr<AssetManager> assets_;
-    std::unique_ptr<World> world_;
+    std::unique_ptr<World<int>> world_;
     uint64_t last_update_ms_ = 0;
 
     // update time for systems, return delta
@@ -58,7 +58,7 @@ public:
         // Now construct members that depend on SDL
         window_ = std::make_unique<Window>(name_, 800, 600);
         assets_ = std::make_unique<AssetManager>(window_->getSdlRenderer());
-        sys_rendering_ = std::make_unique<Rendering>(window_->getSdlRenderer(), assets_.get());
+        sys_rendering_ = std::make_unique<Rendering<int>>(window_->getSdlRenderer(), assets_.get());
         sys_input_ = std::make_unique<Input>();
         sys_movement_ = std::make_unique<MovementAndCollision>();
     }
@@ -67,10 +67,11 @@ public:
         return assets_->loadTexture(name, file_path);
     }
 
-    auto loadWorld(std::unique_ptr<World> &world) -> void {
+    auto loadWorld(std::unique_ptr<World<int>> &world) -> void {
         world_.reset();  // destroy old world!!!
         world_ = std::move(world);
         sys_rendering_->setRegistry(world_->getRegistry());
+        sys_rendering_->setTileMap(world_->getTileMap());
         sys_input_->setRegistry(world_->getRegistry());
         sys_movement_->setRegistry(world_->getRegistry());
     }

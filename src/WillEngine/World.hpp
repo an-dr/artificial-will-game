@@ -13,6 +13,7 @@
 #pragma once
 #include <entt/entt.hpp>
 
+#include "TileMap.hpp"
 #include "entity_components/ComponentCollider.hpp"
 #include "entity_components/ComponentGeometry.hpp"
 #include "entity_components/ComponentInput.hpp"
@@ -26,8 +27,10 @@ struct PlayerCreationResult {
     unsigned int player_id;
 };
 
+template <typename TileType>
 class World {
     entt::registry registry_;
+    TileMap<TileType> tile_map_;
 
     auto addEntity(const ComponentGeometry &object) -> entt::entity {
         const auto entity = registry_.create();
@@ -49,10 +52,11 @@ class World {
     }
 
 public:
-    World() = default;
+    World(MapSize map_size, TileSize tile_size, TileType default_tile)
+        : tile_map_(map_size, tile_size, default_tile) {};
 
     auto getRegistry() -> entt::registry * { return &registry_; }
-
+    auto getTileMap() -> TileMap<TileType> * { return &tile_map_; }
 
     auto add(const ComponentGeometry &geometry, const ComponentTexture &texture,
              std::optional<const ComponentCollider> collider = std::nullopt) -> entt::entity {

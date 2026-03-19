@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 4.1)
 project(artificial_will)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
 
 find_package(SDL2 CONFIG REQUIRED)
