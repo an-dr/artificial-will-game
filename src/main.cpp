@@ -15,6 +15,15 @@ auto main(int argc, char *argv[]) -> int {
 
     auto world = std::make_unique<World<int>>(MapSize{16, 16}, TileSize{64, 64}, 0);
     world->getTileMap()->setTextureName(tiles);
+    std::vector<int> tile_descriptor = {};
+    tile_descriptor.resize(16*16);
+    tile_descriptor[16*2+2]=3;
+    tile_descriptor[16*2+3]=3;
+    tile_descriptor[16*2+5]=3;
+    tile_descriptor[16*8+2]=3;
+    tile_descriptor[16*4+8]=8;
+    tile_descriptor[16*4+9]=9;
+    world->getTileMap()->load(std::move(tile_descriptor));
 
 
     world->add(ComponentGeometry{.x = 10, .y = 10, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
