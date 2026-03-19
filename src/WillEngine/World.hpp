@@ -15,6 +15,7 @@
 
 #include "entity_components/ComponentCollider.hpp"
 #include "entity_components/ComponentGeometry.hpp"
+#include "entity_components/ComponentInput.hpp"
 #include "entity_components/ComponentPlayer.hpp"
 #include "entity_components/ComponentTexture.hpp"
 
@@ -36,13 +37,14 @@ class World {
 
     auto getPlayerId() -> unsigned int {
         auto players = registry_.view<ComponentPlayer>();
-        if (players.empty()) { return 0; }
-        return 1; // TODO
-
+        if (players.empty()) {
+            return 0;
+        }
+        return 1;  // TODO
     }
 
     template <typename Component, typename... Args>
-    auto addComponent(entt::entity entity, Args &&... args) -> void {
+    auto addComponent(entt::entity entity, Args &&...args) -> void {
         registry_.emplace<Component>(entity, std::forward<Args>(args)...);
     }
 
@@ -52,10 +54,8 @@ public:
     auto getRegistry() -> entt::registry * { return &registry_; }
 
 
-    auto add(const ComponentGeometry &geometry,
-             const ComponentTexture &texture,
-             std::optional<const ComponentCollider> collider = std::nullopt) ->
-        entt::entity {
+    auto add(const ComponentGeometry &geometry, const ComponentTexture &texture,
+             std::optional<const ComponentCollider> collider = std::nullopt) -> entt::entity {
         const auto entity = registry_.create();
         registry_.emplace<ComponentGeometry>(entity, geometry);
         registry_.emplace<ComponentTexture>(entity, texture);
@@ -66,17 +66,15 @@ public:
         return entity;
     }
 
-    auto addPlayer(const std::string &name,
-                   const ComponentGeometry &geometry,
-                   const ComponentTexture &texture,
-                   const ComponentCollider &collider) -> PlayerCreationResult {
+    auto addPlayer(const std::string &name, const ComponentGeometry &geometry,
+                   const ComponentTexture &texture, const ComponentCollider &collider)
+        -> PlayerCreationResult {
         auto entity = add(geometry, texture, collider);
         auto id = getPlayerId();
-        registry_.emplace<ComponentPlayer>(
-            entity, ComponentPlayer{.name = name, .player_id = id});
+        registry_.emplace<ComponentPlayer>(entity, ComponentPlayer{.name = name, .player_id = id});
+        registry_.emplace<ComponentInput>(entity, ComponentInput{});
         return {.entity = entity, .player_id = id};
-
     }
 };
 
-} // namespace will_engine
+}  // namespace will_engine

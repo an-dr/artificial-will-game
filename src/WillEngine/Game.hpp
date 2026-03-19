@@ -10,41 +10,16 @@
 //
 // *************************************************************************
 
-/*
-
-✅ Window owns Renderer - SDL2 requires this, destroyed together
-✅ Systems are objects - structs with state, not free functions
-✅ NO system inheritance - no ISystem base class, no polymorphism
-✅ Different system signatures - each takes what it needs
-✅ Game::run() encapsulates loop - main.cpp just creates Game and calls run()
-✅ World owns registry - all entity data lives here
-✅ Components are POD - plain structs, no methods that modify state
-
-main.cpp
-cppint main(int argc, char* argv[]) {
-    try {
-        Game game;
-        game.run();  // That's it
-    } catch (const std::exception& e) {
-        // Error handling
-        return 1;
-    }
-    return 0;
-}
- *
- */
-
 #pragma once
-#include <iostream>
 #include <memory>
-#include <print>
 #include <utility>
 #include <SDL.h>
-#include <SDL_image.h>  // Add this
+#include <SDL_image.h>
 #include "Window.hpp"
 #include "World.hpp"
 #include "systems/AssetManager.hpp"
 #include "systems/Input.hpp"
+#include "systems/MovementAndCollision.hpp"
 #include "systems/Rendering.hpp"
 #include "ulog.h"
 
@@ -55,6 +30,7 @@ class Game {
     std::unique_ptr<Window> window_;
     std::unique_ptr<Input> sys_input_;
     std::unique_ptr<Rendering> sys_rendering_;
+    std::unique_ptr<MovementAndCollision> sys_movement_;
     std::unique_ptr<AssetManager> assets_;
     std::unique_ptr<World> world_;
     uint64_t last_update_ms_ = 0;
@@ -84,9 +60,10 @@ public:
         assets_ = std::make_unique<AssetManager>(window_->getSdlRenderer());
         sys_rendering_ = std::make_unique<Rendering>(window_->getSdlRenderer(), assets_.get());
         sys_input_ = std::make_unique<Input>();
+        sys_movement_ = std::make_unique<MovementAndCollision>();
     }
 
-    auto loadTexture(const std::string &name, const std::string &file_path) -> std::string {
+    auto loadTexture(const std::string &name, const std::string &file_path) const -> std::string {
         return assets_->loadTexture(name, file_path);
     }
 
@@ -95,33 +72,11 @@ public:
         world_ = std::move(world);
         sys_rendering_->setRegistry(world_->getRegistry());
         sys_input_->setRegistry(world_->getRegistry());
+        sys_movement_->setRegistry(world_->getRegistry());
     }
 
     auto start() -> int {
         ulog_t_info("Game", "%s started", name_.c_str());
-
-#if 0
-        auto input = will_engine::Input();
-
-        if (auto ev = input.get()) {
-            switch (ev.value()) {
-            case InputEvent::Down:
-                player_pos.y += 2; // Also fixed direction - see below
-                break;
-            case InputEvent::Up:
-                player_pos.y -= 2;
-                break;
-            case InputEvent::Left:
-                player_pos.x -= 2;
-                break;
-            case InputEvent::Right:
-                player_pos.x += 2;
-                break;
-            case InputEvent::None:
-                break;
-            }
-        }
-#endif  // if 0
 
         bool running = true;
 
@@ -138,6 +93,7 @@ public:
             }
 
             sys_input_->process(dt_ms / 1000.0f);
+            sys_movement_->process(dt_ms / 1000.0f);
             sys_rendering_->process(dt_ms);
         }
 
