@@ -1,0 +1,4 @@
+components/cute_c2/* linguist-vendored=true
+include/ulog.h linguist-vendored=true
+include/ulog_config.h linguist-vendored=true
+src/ulog.c linguist-vendored=true

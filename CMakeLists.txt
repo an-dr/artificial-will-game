@@ -23,6 +23,7 @@ target_link_libraries(artificial_will PRIVATE
 #        microlog::microlog
         EnTT::EnTT
         glm::glm
+        cute_c2
 )
 
 #target_compile_definitions(microlog PRIVATE
