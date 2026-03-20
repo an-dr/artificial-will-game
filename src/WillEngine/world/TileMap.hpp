@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 #include <glm/vec2.hpp>
-#include "containers/Geometry.hpp"
+#include "../containers/Geometry.hpp"
 
 namespace will_engine {
 
@@ -24,13 +24,13 @@ using TileSize = glm::i32vec2;
 
 template <typename TileType>
 class TileMap {
-    geometry::Atlas2D atlas_;
+    Atlas2D atlas_;
     std::vector<TileType> tile_descriptor;
     std::string texture_name;
 
 public:
     TileMap(MapSize map_size, TileSize tile_size, TileType default_tile)
-        : atlas_(map_size.x, map_size.y, tile_size.x, tile_size.y) {
+        : atlas_(map_size, tile_size) {
         tile_descriptor.resize(map_size.x * map_size.y, default_tile);
     }
 
@@ -43,10 +43,11 @@ public:
 
     auto setTextureName(std::string name) -> void { texture_name = std::move(name); }
     auto getTextureName() const -> const std::string & { return texture_name; }
-    auto getSize() const -> glm::i32vec2 { return atlas_.getAtlasSize(); }
+    auto getSize() const -> glm::i32vec2 { return atlas_.getAtlasSizePixels(); }
     auto getTileSize() const -> glm::i32vec2 { return atlas_.getTileSize(); }
     auto getTile(int x, int y) const -> TileType {
-        return tile_descriptor[y * atlas_.getAtlasSize().x + x];
+        auto full_rows = y * atlas_.getAtlasSizePixels().x;
+        return tile_descriptor[full_rows + x];
     }
 };
 

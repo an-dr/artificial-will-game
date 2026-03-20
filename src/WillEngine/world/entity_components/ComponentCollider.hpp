@@ -20,4 +20,4 @@ struct ComponentCollider {
     bool pushable = false;
 };
 
-} // will_engine
+}  // namespace will_engine

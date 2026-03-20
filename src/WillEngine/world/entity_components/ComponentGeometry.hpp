@@ -11,21 +11,17 @@
 // *************************************************************************
 
 #pragma once
-#include <string>
-
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 
 
 namespace will_engine {
 
-struct ComponentTexture {
-    std::string name;
-    glm::ivec2 frame_position;
-    glm::ivec3 frame_size;
-    unsigned int frames_total;
-    float frame_current; // float to progress smoothly
-    unsigned int fps;
+struct ComponentGeometry {
+    float x;
+    float y;
+    int z;
+    int size_x;
+    int size_y;
+    int size_z;
 };
 
-} // will_engine
+}  // namespace will_engine

@@ -14,10 +14,10 @@
 #include <cmath>
 #include <SDL.h>
 #include <entt/entt.hpp>
-#include "../TileMap.hpp"
-#include "../entity_components/ComponentGeometry.hpp"
-#include "../entity_components/ComponentTexture.hpp"
-#include "AssetManager.hpp"
+#include "../AssetManager.hpp"
+#include "../world/TileMap.hpp"
+#include "../world/entity_components/ComponentGeometry.hpp"
+#include "../world/entity_components/ComponentSprite.hpp"
 #include "BaseSystem.hpp"
 
 
@@ -35,6 +35,7 @@ class Rendering : public BaseSystem {
     static constexpr int BACKGROUND_A = 255;
 
 
+    // TODO: reuse Atlas to simplify
     auto draw_tilemap() const -> void {
         if (!tile_map_ || tile_map_->getTextureName().empty())
             return;
@@ -81,12 +82,17 @@ class Rendering : public BaseSystem {
         }
     }
 
-    auto draw_static(const ComponentGeometry *geo, const ComponentTexture *tex,
+    auto draw_static(const ComponentGeometry *geo, const ComponentSprite *sprite,
                      SDL_Texture *sdl_tex) const -> void {
-        SDL_Rect texture_frame = {.x = tex->frame_position.x,
-                                  .y = tex->frame_position.y,
-                                  .w = tex->frame_size.x,
-                                  .h = tex->frame_size.y};
+        auto tile = sprite->atlas.getTile(sprite->getFrameInt());
+        if (!tile.has_value()) {
+            throw std::runtime_error("Sprite map does not have that frame (frame > tiles_max).`");
+        }
+
+        SDL_Rect texture_frame = {.x = tile.value().position.x,
+                                  .y = tile.value().position.y,
+                                  .w = tile.value().size.x,
+                                  .h = tile.value().size.y};
         SDL_Rect location_frame = {.x = static_cast<int>(geo->x),
                                    .y = static_cast<int>(geo->y),
                                    .w = geo->size_x,
@@ -94,24 +100,15 @@ class Rendering : public BaseSystem {
         SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
     }
 
-    static auto process_animation(float dt, ComponentTexture *tex) -> void {
-        if (tex->frames_total < 2)
+    static auto process_animation(float dt, ComponentSprite *sprite) -> void {
+        if (sprite->type == SpriteType::Static)
             return;
 
         // calculate frames
         float d_secs = dt / 1000.0f;
-        auto d_frames = tex->fps * d_secs;
+        auto d_frames = sprite->fps * d_secs;
 
-        // advance and wrap frame_current into [0, frames_total)
-        tex->frame_current =
-            fmod(tex->frame_current + d_frames, static_cast<float>(tex->frames_total));
-
-        // round to nearest int
-        int current_frame = static_cast<int>(tex->frame_current);
-
-        // update the frame position (horizontal sprite sheet, y stays 0)
-        tex->frame_position.x = current_frame * tex->frame_size.x;
-        tex->frame_position.y = 0;
+        sprite->bumpFrame(d_frames);
     }
 
 
@@ -149,11 +146,11 @@ public:
 
         // Render objects
         if (isRegisterSet()) {
-            auto textures = getRegistry()->view<ComponentTexture>();
+            auto textures = getRegistry()->view<ComponentSprite>();
             for (auto entity : textures) {
-                auto &tex = textures.get<ComponentTexture>(entity);
+                auto &tex = textures.get<ComponentSprite>(entity);
 
-                auto sdl_tex = assets_->getTexture(tex.name);
+                auto sdl_tex = assets_->getTexture(tex.atlas.getId());
                 if (!sdl_tex) {
                     throw std::runtime_error("texture is not found!");
                 }

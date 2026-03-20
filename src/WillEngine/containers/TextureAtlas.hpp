@@ -11,17 +11,21 @@
 // *************************************************************************
 
 #pragma once
+#include <string>
+#include "../containers/Geometry.hpp"
 
 
 namespace will_engine {
 
-struct ComponentGeometry {
-    float x;
-    float y;
-    int z;
-    int size_x;
-    int size_y;
-    int size_z;
+class TextureAtlas : public Atlas2D {
+    std::string name_id;
+
+public:
+    TextureAtlas(const std::string &id, const AtlasSize atlas_size, const TileSize tile_size)
+        : Atlas2D(atlas_size, tile_size), name_id(id) {};
+
+    auto getId() -> std::string { return name_id; };
 };
 
-} // will_engine
+
+}  // namespace will_engine

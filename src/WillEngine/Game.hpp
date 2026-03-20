@@ -15,13 +15,13 @@
 #include <utility>
 #include <SDL.h>
 #include <SDL_image.h>
+#include "AssetManager.hpp"
 #include "Window.hpp"
-#include "World.hpp"
-#include "systems/AssetManager.hpp"
 #include "systems/Input.hpp"
 #include "systems/MovementAndCollision.hpp"
 #include "systems/Rendering.hpp"
 #include "ulog.h"
+#include "world/World.hpp"
 
 
 namespace will_engine {

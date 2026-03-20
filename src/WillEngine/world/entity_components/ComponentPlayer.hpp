@@ -11,12 +11,12 @@
 // *************************************************************************
 
 #pragma once
-
-#include <glm/vec2.hpp>
-
+#include <string>
 
 namespace will_engine {
-struct ComponentInput {
-    glm::vec2 input_keyboard;
+
+struct ComponentPlayer {
+    std::string name;
+    unsigned int player_id;
 };
-} //
+}  // namespace will_engine

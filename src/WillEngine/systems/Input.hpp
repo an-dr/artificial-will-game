@@ -15,8 +15,8 @@
 #include <cute_c2.h>
 #include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
-#include "../entity_components/ComponentInput.hpp"
-#include "../entity_components/ComponentPlayer.hpp"
+#include "../world/entity_components/ComponentInput.hpp"
+#include "../world/entity_components/ComponentPlayer.hpp"
 #include "BaseSystem.hpp"
 
 namespace will_engine {

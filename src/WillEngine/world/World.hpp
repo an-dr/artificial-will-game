@@ -18,7 +18,7 @@
 #include "entity_components/ComponentGeometry.hpp"
 #include "entity_components/ComponentInput.hpp"
 #include "entity_components/ComponentPlayer.hpp"
-#include "entity_components/ComponentTexture.hpp"
+#include "entity_components/ComponentSprite.hpp"
 
 namespace will_engine {
 
@@ -58,11 +58,11 @@ public:
     auto getRegistry() -> entt::registry * { return &registry_; }
     auto getTileMap() -> TileMap<TileType> * { return &tile_map_; }
 
-    auto add(const ComponentGeometry &geometry, const ComponentTexture &texture,
+    auto add(const ComponentGeometry &geometry, const ComponentSprite &sprite,
              std::optional<const ComponentCollider> collider = std::nullopt) -> entt::entity {
         const auto entity = registry_.create();
         registry_.emplace<ComponentGeometry>(entity, geometry);
-        registry_.emplace<ComponentTexture>(entity, texture);
+        registry_.emplace<ComponentSprite>(entity, sprite);
 
         if (collider.has_value()) {
             registry_.emplace<ComponentCollider>(entity, collider.value());
@@ -71,9 +71,9 @@ public:
     }
 
     auto addPlayer(const std::string &name, const ComponentGeometry &geometry,
-                   const ComponentTexture &texture, const ComponentCollider &collider)
+                   const ComponentSprite &sprite, const ComponentCollider &collider)
         -> PlayerCreationResult {
-        auto entity = add(geometry, texture, collider);
+        auto entity = add(geometry, sprite, collider);
         auto id = getPlayerId();
         registry_.emplace<ComponentPlayer>(entity, ComponentPlayer{.name = name, .player_id = id});
         registry_.emplace<ComponentInput>(entity, ComponentInput{});
