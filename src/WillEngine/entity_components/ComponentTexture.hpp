@@ -13,16 +13,16 @@
 #pragma once
 #include <string>
 
-#include "../Point2d.hpp"
-#include "../Size3d.hpp"
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 
 namespace will_engine {
 
 struct ComponentTexture {
     std::string name;
-    Point2d frame_position;
-    Size3d frame_size;
+    glm::ivec2 frame_position;
+    glm::ivec3 frame_size;
     unsigned int frames_total;
     float frame_current; // float to progress smoothly
     unsigned int fps;
