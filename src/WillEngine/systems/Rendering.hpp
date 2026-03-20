@@ -36,26 +36,29 @@ class Rendering : public BaseSystem {
 
 
     auto draw_tilemap() const -> void {
-        if (!tile_map_ || tile_map_->getTextureName().empty()) return;
+        if (!tile_map_ || tile_map_->getTextureName().empty())
+            return;
 
         SDL_Texture *tileset = assets_->getTexture(tile_map_->getTextureName());
-        if (!tileset) return;
+        if (!tileset)
+            return;
 
         // How many tile columns/rows fit across the tileset image?
         int tileset_w = 0, tileset_h = 0;
         SDL_QueryTexture(tileset, nullptr, nullptr, &tileset_w, &tileset_h);
-        const auto src_tile  = tile_map_->getTileSize();        // tile size in the texture
-        const auto dst_tile  = tile_map_->getDisplayTileSize(); // tile size on screen
-        const int  tileset_cols = tileset_w / src_tile.x;
-        const int  tileset_rows = tileset_h / src_tile.y;
-        const int  max_index    = tileset_cols * tileset_rows - 1;
+        const auto src_tile = tile_map_->getTileSize();  // tile size in the texture
+        const auto dst_tile = tile_map_->getTileSize();  // tile size on screen
+        const int tileset_cols = tileset_w / src_tile.x;
+        const int tileset_rows = tileset_h / src_tile.y;
+        const int max_index = tileset_cols * tileset_rows - 1;
 
         const auto map_size = tile_map_->getSize();
         for (int row = 0; row < map_size.y; row++) {
             for (int col = 0; col < map_size.x; col++) {
                 const int tile_index = tile_map_->getTile(col, row);
 
-                if (tile_index < 0 || tile_index > max_index) continue;  // skip invalid tile
+                if (tile_index < 0 || tile_index > max_index)
+                    continue;  // skip invalid tile
 
                 // Where in the tileset is this tile? (row-major grid)
                 SDL_Rect src = {
@@ -84,8 +87,10 @@ class Rendering : public BaseSystem {
                                   .y = tex->frame_position.y,
                                   .w = tex->frame_size.x,
                                   .h = tex->frame_size.y};
-        SDL_Rect location_frame = {.x = static_cast<int>(geo->x), .y = static_cast<int>(geo->y),
-                                   .w = geo->size_x, .h = geo->size_y};
+        SDL_Rect location_frame = {.x = static_cast<int>(geo->x),
+                                   .y = static_cast<int>(geo->y),
+                                   .w = geo->size_x,
+                                   .h = geo->size_y};
         SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
     }
 
@@ -98,8 +103,8 @@ class Rendering : public BaseSystem {
         auto d_frames = tex->fps * d_secs;
 
         // advance and wrap frame_current into [0, frames_total)
-        tex->frame_current = fmod(tex->frame_current + d_frames,
-                                  static_cast<float>(tex->frames_total));
+        tex->frame_current =
+            fmod(tex->frame_current + d_frames, static_cast<float>(tex->frames_total));
 
         // round to nearest int
         int current_frame = static_cast<int>(tex->frame_current);
@@ -165,6 +170,5 @@ public:
 
         completeFrame();
     }
-
 };
-} // namespace will_engine
+}  // namespace will_engine
