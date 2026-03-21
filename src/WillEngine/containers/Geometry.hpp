@@ -26,9 +26,9 @@ struct Box {
     auto getSizes() const { return glm::abs(glm::ivec3{b.x - a.x, b.y - a.y, b.z - a.z}); }
 };
 
-
-using AtlasSize = glm::ivec2;
-using TileSize = glm::ivec2;
+using ArraySize2D = glm::ivec2;
+using AtlasSizePx = glm::ivec2;
+using TileSizePx = glm::ivec2;
 
 
 class Atlas2D {
@@ -40,7 +40,7 @@ class Atlas2D {
     int size_total_tiles_;
 
 public:
-    Atlas2D(const AtlasSize atlas_size, const TileSize tile_size)
+    Atlas2D(const AtlasSizePx atlas_size, const TileSizePx tile_size)
         : atlas_size_(atlas_size), tile_size_(tile_size),
           tiles_num_{(atlas_size.x / tile_size.x), (atlas_size.y / tile_size.y)},
           size_total_tiles_((atlas_size.x / tile_size.x) * (atlas_size.y / tile_size.y)) {}

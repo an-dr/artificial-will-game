@@ -15,39 +15,53 @@
 #include <string>
 #include <vector>
 #include <glm/vec2.hpp>
-#include "../containers/Geometry.hpp"
+
+#include "../containers/TextureAtlas.hpp"
 
 namespace will_engine {
 
-using MapSize = glm::i32vec2;
-using TileSize = glm::i32vec2;
-
-template <typename TileType>
+template <typename TileType = int>
 class TileMap {
-    Atlas2D atlas_;
-    std::vector<TileType> tile_descriptor;
-    std::string texture_name;
+
+    // Rendering (Output)
+    ArraySize2D size_;
+    std::vector<TileType> tile_descriptor_;
+    TileSizePx rendered_tile_size_;
+
+    // Texture (Input)
+    std::string texture_name_;
+    TextureAtlas tex_atlas;
+
 
 public:
-    TileMap(MapSize map_size, TileSize tile_size, TileType default_tile)
-        : atlas_(map_size, tile_size) {
-        tile_descriptor.resize(map_size.x * map_size.y, default_tile);
+    TileMap(ArraySize2D map_size_tiles, TileSizePx rendered_tile_px, TileType default_tile,
+            const TextureAtlas &&tex_atlas)
+        : size_(map_size_tiles), rendered_tile_size_(rendered_tile_px), tex_atlas(tex_atlas) {
+        tile_descriptor_.resize(map_size_tiles.x * map_size_tiles.y, default_tile);
     }
 
     auto load(std::vector<TileType> &&new_descriptor) {
-        if (new_descriptor.size() != tile_descriptor.size()) {
+        if (new_descriptor.size() != tile_descriptor_.size()) {
             throw std::runtime_error("Wrong size of the new tile descriptor");
         }
-        tile_descriptor = std::move(new_descriptor);
+        tile_descriptor_ = std::move(new_descriptor);
     }
 
-    auto setTextureName(std::string name) -> void { texture_name = std::move(name); }
-    auto getTextureName() const -> const std::string & { return texture_name; }
-    auto getSize() const -> glm::i32vec2 { return atlas_.getAtlasSizePixels(); }
-    auto getTileSize() const -> glm::i32vec2 { return atlas_.getTileSize(); }
-    auto getTile(int x, int y) const -> TileType {
-        auto full_rows = y * atlas_.getAtlasSizePixels().x;
-        return tile_descriptor[full_rows + x];
+    auto getTextureName() const -> const std::string & { return tex_atlas.getId(); }
+    auto getMapSize() const -> ArraySize2D { return size_; };
+    auto getMapTileCount() const -> int { return size_.x * size_.y; }
+    auto getTextureTileSize() const -> TileSizePx { return tex_atlas.getAtlasSizeTiles(); }
+    auto getRenderTileSize() const -> TileSizePx { return rendered_tile_size_; }
+    auto getAtlas() const -> const TextureAtlas & { return tex_atlas; }
+    auto getTileType(int x, int y) const -> TileType { return tile_descriptor_[y * size_.x + x]; }
+
+    auto getTileType(int i) const -> TileType { return tile_descriptor_[i]; }
+
+    auto getTilePos(int i) const -> glm::ivec2 { return {i % size_.x, i / size_.x}; }
+
+    auto getScreenRect(int i) const -> Rect {
+        const auto pos = getTilePos(i);
+        return Rect{.position = pos * rendered_tile_size_, .size = rendered_tile_size_};
     }
 };
 

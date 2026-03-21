@@ -14,7 +14,7 @@
 #include <cmath>
 #include <SDL.h>
 #include <entt/entt.hpp>
-#include "../AssetManager.hpp"
+#include "../GpuAssetManager.hpp"
 #include "../world/TileMap.hpp"
 #include "../world/entity_components/ComponentGeometry.hpp"
 #include "../world/entity_components/ComponentSprite.hpp"
@@ -25,7 +25,7 @@ namespace will_engine {
 
 template <typename TileType = int>
 class Rendering : public BaseSystem {
-    AssetManager *assets_ = nullptr;
+    GpuAssetManager *assets_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
     const TileMap<TileType> *tile_map_ = nullptr;
 
@@ -35,7 +35,6 @@ class Rendering : public BaseSystem {
     static constexpr int BACKGROUND_A = 255;
 
 
-    // TODO: reuse Atlas to simplify
     auto draw_tilemap() const -> void {
         if (!tile_map_ || tile_map_->getTextureName().empty())
             return;
@@ -44,41 +43,21 @@ class Rendering : public BaseSystem {
         if (!tileset)
             return;
 
-        // How many tile columns/rows fit across the tileset image?
-        int tileset_w = 0, tileset_h = 0;
-        SDL_QueryTexture(tileset, nullptr, nullptr, &tileset_w, &tileset_h);
-        const auto src_tile = tile_map_->getTileSize();  // tile size in the texture
-        const auto dst_tile = tile_map_->getTileSize();  // tile size on screen
-        const int tileset_cols = tileset_w / src_tile.x;
-        const int tileset_rows = tileset_h / src_tile.y;
-        const int max_index = tileset_cols * tileset_rows - 1;
+        const auto &atlas = tile_map_->getAtlas();
 
-        const auto map_size = tile_map_->getSize();
-        for (int row = 0; row < map_size.y; row++) {
-            for (int col = 0; col < map_size.x; col++) {
-                const int tile_index = tile_map_->getTile(col, row);
+        for (int i = 0; i < tile_map_->getMapTileCount(); i++) {
+            const auto src_rect = atlas.getTile(tile_map_->getTileType(i));
+            if (!src_rect.has_value())
+                continue;
 
-                if (tile_index < 0 || tile_index > max_index)
-                    continue;  // skip invalid tile
+            const auto dst_rect = tile_map_->getScreenRect(i);
 
-                // Where in the tileset is this tile? (row-major grid)
-                SDL_Rect src = {
-                    .x = (tile_index % tileset_cols) * src_tile.x,
-                    .y = (tile_index / tileset_cols) * src_tile.y,
-                    .w = src_tile.x,
-                    .h = src_tile.y,
-                };
+            SDL_Rect src = {src_rect->position.x, src_rect->position.y,  //
+                            src_rect->size.x, src_rect->size.y};
+            SDL_Rect dst = {dst_rect.position.x, dst_rect.position.y,  //
+                            dst_rect.size.x, dst_rect.size.y};
 
-                // Where on screen should it be drawn?
-                SDL_Rect dst = {
-                    .x = col * dst_tile.x,
-                    .y = row * dst_tile.y,
-                    .w = dst_tile.x,
-                    .h = dst_tile.y,
-                };
-
-                SDL_RenderCopy(renderer_, tileset, &src, &dst);
-            }
+            SDL_RenderCopy(renderer_, tileset, &src, &dst);
         }
     }
 
@@ -122,7 +101,7 @@ class Rendering : public BaseSystem {
     auto completeFrame() const -> void { SDL_RenderPresent(renderer_); }
 
 public:
-    Rendering(SDL_Renderer *renderer, AssetManager *asset_manager) : BaseSystem() {
+    Rendering(SDL_Renderer *renderer, GpuAssetManager *asset_manager) : BaseSystem() {
         if (renderer == nullptr) {
             throw std::runtime_error("renderer_ == nullptr");
         }

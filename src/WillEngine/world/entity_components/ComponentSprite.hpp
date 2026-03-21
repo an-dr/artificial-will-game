@@ -11,9 +11,7 @@
 // *************************************************************************
 
 #pragma once
-#include <string>
-
-#include "../containers/TextureAtlas.hpp"
+#include "../../containers/TextureAtlas.hpp"
 
 
 namespace will_engine {

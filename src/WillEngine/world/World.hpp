@@ -30,7 +30,7 @@ struct PlayerCreationResult {
 template <typename TileType>
 class World {
     entt::registry registry_;
-    TileMap<TileType> tile_map_;
+    std::unique_ptr<TileMap<TileType>> tile_map_;
 
     auto addEntity(const ComponentGeometry &object) -> entt::entity {
         const auto entity = registry_.create();
@@ -52,11 +52,13 @@ class World {
     }
 
 public:
-    World(MapSize map_size, TileSize tile_size, TileType default_tile)
-        : tile_map_(map_size, tile_size, default_tile) {};
+    World() = default;
 
     auto getRegistry() -> entt::registry * { return &registry_; }
-    auto getTileMap() -> TileMap<TileType> * { return &tile_map_; }
+    auto getTileMap() -> TileMap<TileType> * { return tile_map_.get(); }
+    auto setTileMap(TileMap<TileType> &&tile_map) {
+        tile_map_ = std::make_unique<TileMap<TileType>>(std::move(tile_map));
+    }
 
     auto add(const ComponentGeometry &geometry, const ComponentSprite &sprite,
              std::optional<const ComponentCollider> collider = std::nullopt) -> entt::entity {

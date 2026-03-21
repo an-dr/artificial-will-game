@@ -21,10 +21,10 @@ class TextureAtlas : public Atlas2D {
     std::string name_id;
 
 public:
-    TextureAtlas(const std::string &id, const AtlasSize atlas_size, const TileSize tile_size)
+    TextureAtlas(const std::string &id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
         : Atlas2D(atlas_size, tile_size), name_id(id) {};
 
-    auto getId() -> std::string { return name_id; };
+    auto getId() const -> const std::string & { return name_id; };
 };
 
 
