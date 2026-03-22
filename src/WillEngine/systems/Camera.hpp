@@ -40,7 +40,7 @@ public:
         if (!registry || !camera_state)
             return;
 
-        // For each ComponentCameraTarget entity untill the first target to follow
+        // For each ComponentCameraTarget entity until the first target to follow
         for (const auto &[entity, camera_target, geometry] :
              registry->view<ComponentCameraTarget, ComponentGeometry>().each()) {
             if (!camera_target.follow)

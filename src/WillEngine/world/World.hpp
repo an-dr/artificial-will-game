@@ -21,6 +21,7 @@
 #include "entity_components/ComponentInput.hpp"
 #include "entity_components/ComponentPlayer.hpp"
 #include "entity_components/ComponentSprite.hpp"
+#include "entity_components/ComponentType.hpp"
 
 namespace will_engine {
 
@@ -69,6 +70,7 @@ public:
         const auto entity = registry_.create();
         registry_.emplace<ComponentGeometry>(entity, geometry);
         registry_.emplace<ComponentSprite>(entity, sprite);
+        registry_.emplace<ComponentType>(entity, ComponentType{});
 
         if (collider.has_value()) {
             registry_.emplace<ComponentCollider>(entity, collider.value());
@@ -80,6 +82,11 @@ public:
                    const ComponentSprite &sprite, const ComponentCollider &collider)
         -> PlayerCreationResult {
         auto entity = add(geometry, sprite, collider);
+
+        // update type to player
+        auto &type = registry_.get<ComponentType>(entity);
+        type.type = EntityType::Player;
+
         auto id = getPlayerId();
         registry_.emplace<ComponentPlayer>(entity, ComponentPlayer{.name = name, .player_id = id});
         registry_.emplace<ComponentInput>(entity, ComponentInput{});

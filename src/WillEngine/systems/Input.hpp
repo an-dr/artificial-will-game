@@ -12,7 +12,6 @@
 
 #pragma once
 #include <SDL.h>
-#include <cute_c2.h>
 #include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
 #include "../world/entity_components/ComponentInput.hpp"

@@ -6,6 +6,7 @@
     "abcmake",
     "sdl2",
     "sdl2-image",
+    "bext-sml",
     "entt",
     "glm"
   ]
