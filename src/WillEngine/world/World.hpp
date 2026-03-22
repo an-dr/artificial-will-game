@@ -13,7 +13,9 @@
 #pragma once
 #include <entt/entt.hpp>
 
+#include "CameraState.hpp"
 #include "TileMap.hpp"
+#include "entity_components/ComponentCameraTarget.hpp"
 #include "entity_components/ComponentCollider.hpp"
 #include "entity_components/ComponentGeometry.hpp"
 #include "entity_components/ComponentInput.hpp"
@@ -31,6 +33,7 @@ template <typename TileType>
 class World {
     entt::registry registry_;
     std::unique_ptr<TileMap<TileType>> tile_map_;
+    CameraState camera_state_;
 
     auto addEntity(const ComponentGeometry &object) -> entt::entity {
         const auto entity = registry_.create();
@@ -55,6 +58,7 @@ public:
     World() = default;
 
     auto getRegistry() -> entt::registry * { return &registry_; }
+    auto getCameraState() -> CameraState * { return &camera_state_; }
     auto getTileMap() -> TileMap<TileType> * { return tile_map_.get(); }
     auto setTileMap(TileMap<TileType> &&tile_map) {
         tile_map_ = std::make_unique<TileMap<TileType>>(std::move(tile_map));
@@ -79,6 +83,7 @@ public:
         auto id = getPlayerId();
         registry_.emplace<ComponentPlayer>(entity, ComponentPlayer{.name = name, .player_id = id});
         registry_.emplace<ComponentInput>(entity, ComponentInput{});
+        registry_.emplace<ComponentCameraTarget>(entity, ComponentCameraTarget{.follow = true});
         return {.entity = entity, .player_id = id};
     }
 };

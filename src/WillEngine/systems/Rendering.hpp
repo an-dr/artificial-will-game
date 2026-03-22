@@ -35,7 +35,7 @@ class Rendering : public BaseSystem {
     static constexpr int BACKGROUND_A = 255;
 
 
-    auto draw_tilemap() const -> void {
+    auto draw_tilemap(const CameraState *camera) const -> void {
         if (!tile_map_ || tile_map_->getTextureName().empty())
             return;
 
@@ -54,7 +54,8 @@ class Rendering : public BaseSystem {
 
             SDL_Rect src = {src_rect->position.x, src_rect->position.y,  //
                             src_rect->size.x, src_rect->size.y};
-            SDL_Rect dst = {dst_rect.position.x, dst_rect.position.y,  //
+            SDL_Rect dst = {dst_rect.position.x - static_cast<int>(camera->position.x),
+                            dst_rect.position.y - static_cast<int>(camera->position.y),
                             dst_rect.size.x, dst_rect.size.y};
 
             SDL_RenderCopy(renderer_, tileset, &src, &dst);
@@ -62,7 +63,7 @@ class Rendering : public BaseSystem {
     }
 
     auto draw_static(const ComponentGeometry *geo, const ComponentSprite *sprite,
-                     SDL_Texture *sdl_tex) const -> void {
+                     SDL_Texture *sdl_tex, const CameraState *camera) const -> void {
         auto tile = sprite->atlas.getTile(sprite->getFrameInt());
         if (!tile.has_value()) {
             throw std::runtime_error("Sprite map does not have that frame (frame > tiles_max).`");
@@ -72,8 +73,8 @@ class Rendering : public BaseSystem {
                                   .y = tile.value().position.y,
                                   .w = tile.value().size.x,
                                   .h = tile.value().size.y};
-        SDL_Rect location_frame = {.x = static_cast<int>(geo->x),
-                                   .y = static_cast<int>(geo->y),
+        SDL_Rect location_frame = {.x = static_cast<int>(geo->x - camera->position.x),
+                                   .y = static_cast<int>(geo->y - camera->position.y),
                                    .w = geo->size_x,
                                    .h = geo->size_y};
         SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
@@ -116,12 +117,12 @@ public:
 
     auto setTileMap(const TileMap<TileType> *tile_map) { tile_map_ = tile_map; }
 
-    auto process(const uint64_t dt_ms) const -> void {
+    auto process(const uint64_t dt_ms, CameraState *camera_state) const -> void {
         startFrame();
 
 
         // Render tiles
-        draw_tilemap();
+        draw_tilemap(camera_state);
 
         // Render objects
         if (isRegisterSet()) {
@@ -140,7 +141,7 @@ public:
                 }
 
                 process_animation(dt_ms, &tex);
-                draw_static(geo, &tex, sdl_tex);
+                draw_static(geo, &tex, sdl_tex, camera_state);
             }
         }
 

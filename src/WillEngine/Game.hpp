@@ -17,6 +17,7 @@
 #include <SDL_image.h>
 #include "GpuAssetManager.hpp"
 #include "Window.hpp"
+#include "systems/Camera.hpp"
 #include "systems/Input.hpp"
 #include "systems/MovementAndCollision.hpp"
 #include "systems/Rendering.hpp"
@@ -31,6 +32,7 @@ class Game {
     std::unique_ptr<Input> sys_input_;
     std::unique_ptr<Rendering<int>> sys_rendering_;
     std::unique_ptr<MovementAndCollision> sys_movement_;
+    std::unique_ptr<Camera> sys_camera_;
     std::unique_ptr<GpuAssetManager> gpu_assets_;
     std::unique_ptr<World<int>> world_;
     uint64_t last_update_ms_ = 0;
@@ -62,6 +64,8 @@ public:
             std::make_unique<Rendering<int>>(window_->getSdlRenderer(), gpu_assets_.get());
         sys_input_ = std::make_unique<Input>();
         sys_movement_ = std::make_unique<MovementAndCollision>();
+        sys_camera_ = std::make_unique<Camera>();
+        sys_camera_->setViewport(800, 600);
     }
 
     auto loadTexture(const std::string &name, const std::string &file_path) const -> std::string {
@@ -75,6 +79,13 @@ public:
         sys_rendering_->setTileMap(world_->getTileMap());
         sys_input_->setRegistry(world_->getRegistry());
         sys_movement_->setRegistry(world_->getRegistry());
+        sys_camera_->setRegistry(world_->getRegistry());
+
+        if (auto *tm = world_->getTileMap()) {
+            auto map  = tm->getMapSize();
+            auto tile = tm->getRenderTileSize();
+            sys_camera_->setWorldBounds(map.x * tile.x, map.y * tile.y);
+        }
     }
 
     auto start() -> int {
@@ -96,7 +107,8 @@ public:
 
             sys_input_->process(dt_ms / 1000.0f);
             sys_movement_->process(dt_ms / 1000.0f);
-            sys_rendering_->process(dt_ms);
+            sys_camera_->process(dt_ms / 1000.0f, world_->getCameraState());
+            sys_rendering_->process(dt_ms, world_->getCameraState());
         }
 
 
