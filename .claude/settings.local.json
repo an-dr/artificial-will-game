@@ -13,7 +13,12 @@
       "Read(//c/Program Files/Microsoft Visual Studio//**)",
       "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio//**)",
       "Bash(grep -E \"^memory$|^string|^vector\")",
-      "Bash(find C:00_Codeartificial-will-game -not -path */.* -not -path */.git/* -not -path */.idea/* -not -path */.claude/* -not -path */cmake-build*)"
+      "Bash(find C:00_Codeartificial-will-game -not -path */.* -not -path */.git/* -not -path */.idea/* -not -path */.claude/* -not -path */cmake-build*)",
+      "Bash(cmake --version)",
+      "Bash(ninja --version)",
+      "Bash(where vcpkg:*)",
+      "Bash(cmake --preset arm64-debug)",
+      "Bash(cmake --build --preset arm64-debug)"
     ]
   }
 }

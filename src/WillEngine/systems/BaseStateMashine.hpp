@@ -21,6 +21,7 @@ class BaseStateMashine : public BaseSystem {
 public:
     BaseStateMashine() = delete;
     explicit BaseStateMashine(entt::entity id) : entity_(id) {}
+    virtual ~BaseStateMashine() = default;
 
     auto getEntittyId() const { return entity_; }
     virtual auto tick() -> void = 0;

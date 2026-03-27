@@ -1,0 +1,31 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "cmake.options.statusBarVisibility": "hidden",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.cppStandard": "c++23",
+    "C_Cpp.intelliSenseEngine": "default",
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.runAutomatically": true,
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/arm64-debug/compile_commands.json",
+    "files.exclude": {
+      "build": true,
+      "cmake-build-*": true,
+      "vcpkg_installed": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.cpptools",
+      "ms-vscode.cmake-tools",
+      "twxs.cmake",
+      "ms-vscode.cpptools-themes",
+      "streetsidesoftware.code-spell-checker"
+    ]
+  }
+}

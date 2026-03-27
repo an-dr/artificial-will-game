@@ -42,6 +42,7 @@
 
 #ides
 .idea
+.vscode
 
 # Cmake
 CMakeUserPresets.json

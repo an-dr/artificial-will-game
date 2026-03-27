@@ -1,19 +1,36 @@
-# Code Review Instructions
+# Development Environment
+
+## VSCode Setup
+
+Each developer maintains their own local, gitignored files:
+
+- `CMakeUserPresets.json` — define your configure/build presets (inherit from `vcpkg`)
+- `.vscode/settings.json` — point cmake-tools at your preset and set `VCPKG_ROOT`
+
+Open `artificial-will-game.code-workspace` to get extension recommendations and shared settings. See `README.md` for example file contents.
+
+---
+
+## Code Review Instructions
 
 You are performing a comprehensive code review with focus on modern best practices and modernization opportunities.
 
-## Scope
+### Scope
+
 Analyze the following:
+
 - **Default**: Changes compared to `master` or `main` branch
 - **Custom diff**: If specified, use the provided diff/range
 - **Full codebase**: If explicitly requested, review everything
 
-## Context
+### Context
+
 - **Language**: [Auto-detect from code]
 - **Domain**: [User specifies - e.g., "web backend", "embedded systems", "data pipeline", "CLI tool"]
 - **Default if not specified**: Modern generic programming in the detected language
 
-## Review Focus
+### Review Focus
+
 Perform a critical review covering:
 
 1. **Modernization** 🚀
@@ -54,8 +71,9 @@ Perform a critical review covering:
     - Functional vs imperative style appropriateness
     - Testing patterns and testability
 
-## Output Format: CODE_REVIEW.md
-```
+### Output Format: CODE_REVIEW.md
+
+```markdown
 # Code Review - [Date/PR/Commit]
 
 ## 🎯 Summary
@@ -103,7 +121,8 @@ Perform a critical review covering:
 [Final recommendation and reasoning]
 ```
 
-## Review Guidelines
+### Review Guidelines
+
 - **Be specific**: File:Line references, concrete code examples
 - **Be opinionated**: State what's wrong and what's better
 - **No hedging**: "This might be..." → "This is a problem because..."
@@ -113,8 +132,10 @@ Perform a critical review covering:
 - **Honest tradeoffs**: Sometimes "good enough" is correct—acknowledge it
 - **No fluff**: Skip generic advice, focus on this code
 
-## Language-Specific Awareness
+### Language-Specific Awareness
+
 Detect language and apply modern idioms:
+
 - **Python**: Type hints, f-strings, dataclasses, async/await, walrus operator
 - **JavaScript/TypeScript**: ES6+, async/await, optional chaining, nullish coalescing
 - **C++**: C++17/20/23 features, smart pointers, ranges, concepts
