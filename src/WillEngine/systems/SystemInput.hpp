@@ -20,7 +20,7 @@
 
 namespace will_engine {
 
-class Input : public BaseSystem {
+class SystemInput : public BaseSystem {
 
     static auto get_direction([[maybe_unused]] unsigned int player_id) -> glm::vec2 {
         const Uint8 *key_state = SDL_GetKeyboardState(nullptr);
@@ -40,7 +40,7 @@ class Input : public BaseSystem {
     }
 
 public:
-    Input() = default;
+    SystemInput() = default;
 
     auto process(float delta_time) const -> void {
         auto reg = getRegistry();

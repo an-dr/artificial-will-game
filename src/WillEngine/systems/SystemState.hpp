@@ -12,11 +12,26 @@
 
 #pragma once
 
+#include "BaseStateMashine.hpp"
 #include "BaseSystem.hpp"
 
 namespace will_engine {
-class IStateMashine : public BaseSystem {
+class SystemState : public BaseSystem {
+
+    std::vector<std::unique_ptr<BaseStateMashine>> state_machines_;
+
 public:
-    IStateMashine() = default;
+    SystemState() = default;
+
+    void add(std::unique_ptr<BaseStateMashine> machine) {
+        machine->setRegistry(getRegistry());
+        state_machines_.push_back(std::move(machine));
+    }
+
+    void process() {
+        for (auto &sm : state_machines_) {
+            sm->tick();
+        }
+    }
 };
 }  // namespace will_engine

@@ -15,11 +15,14 @@
 #include "BaseSystem.hpp"
 
 namespace will_engine {
-class StateController : public BaseSystem {
-
-    std::vector<IStateMashine> state_machines_;
+class BaseStateMashine : public BaseSystem {
+    entt::entity entity_;
 
 public:
-    StateController() = default;
+    BaseStateMashine() = delete;
+    explicit BaseStateMashine(entt::entity id) : entity_(id) {}
+
+    auto getEntittyId() const { return entity_; }
+    auto tick() -> void;
 };
 }  // namespace will_engine

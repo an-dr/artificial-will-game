@@ -22,7 +22,7 @@
 
 namespace will_engine {
 
-class MovementAndCollision : public BaseSystem {
+class SystemMovementAndCollision : public BaseSystem {
 
     static auto makeAABB(const ComponentGeometry &geometry, const ComponentCollider &collider)
         -> c2AABB {
@@ -149,7 +149,7 @@ class MovementAndCollision : public BaseSystem {
     }
 
 public:
-    MovementAndCollision() = default;
+    SystemMovementAndCollision() = default;
 
     auto process(float delta_time) const -> void {
         move_players(delta_time);

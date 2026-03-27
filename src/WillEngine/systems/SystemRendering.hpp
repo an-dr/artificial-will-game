@@ -24,7 +24,7 @@
 namespace will_engine {
 
 template <typename TileType = int>
-class Rendering : public BaseSystem {
+class SystemRendering : public BaseSystem {
     GpuAssetManager *assets_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
     const TileMap<TileType> *tile_map_ = nullptr;
@@ -102,7 +102,7 @@ class Rendering : public BaseSystem {
     auto completeFrame() const -> void { SDL_RenderPresent(renderer_); }
 
 public:
-    Rendering(SDL_Renderer *renderer, GpuAssetManager *asset_manager) : BaseSystem() {
+    SystemRendering(SDL_Renderer *renderer, GpuAssetManager *asset_manager) : BaseSystem() {
         if (renderer == nullptr) {
             throw std::runtime_error("renderer_ == nullptr");
         }

@@ -19,12 +19,12 @@
 #include "BaseSystem.hpp"
 
 namespace will_engine {
-class Camera : public BaseSystem {
+class SystemCamera : public BaseSystem {
     glm::vec2 viewport_ = {800.0f, 600.0f};     // basically, window size
     glm::vec2 world_bounds_max = {0.0f, 0.0f};  // (0,0) = no clamping
 
 public:
-    Camera() = default;
+    SystemCamera() = default;
 
     static constexpr float smoothing = 5.0f;
 
