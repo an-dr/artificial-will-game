@@ -15,7 +15,6 @@
 #include <string>
 #include <vector>
 #include <glm/vec2.hpp>
-
 #include "../containers/TextureAtlas.hpp"
 
 namespace will_engine {
@@ -47,12 +46,14 @@ public:
         tile_descriptor_ = std::move(new_descriptor);
     }
 
-    auto getTextureName() const -> const std::string & { return tex_atlas.getId(); }
-    auto getMapSize() const -> ArraySize2D { return size_; };
-    auto getMapTileCount() const -> int { return size_.x * size_.y; }
-    auto getTextureTileSize() const -> TileSizePx { return tex_atlas.getAtlasSizeTiles(); }
-    auto getRenderTileSize() const -> TileSizePx { return rendered_tile_size_; }
-    auto getAtlas() const -> const TextureAtlas & { return tex_atlas; }
+    [[nodiscard]] auto getTextureName() const -> const std::string & { return tex_atlas.getId(); }
+    [[nodiscard]] auto getMapSize() const -> ArraySize2D { return size_; };
+    [[nodiscard]] auto getMapTileCount() const -> int { return size_.x * size_.y; }
+    [[nodiscard]] auto getTextureTileSize() const -> TileSizePx {
+        return tex_atlas.getAtlasSizeTiles();
+    }
+    [[nodiscard]] auto getRenderTileSize() const -> TileSizePx { return rendered_tile_size_; }
+    [[nodiscard]] auto getAtlas() const -> const TextureAtlas & { return tex_atlas; }
     auto getTileType(int x, int y) const -> TileType { return tile_descriptor_[y * size_.x + x]; }
 
     auto getTileType(int i) const -> TileType { return tile_descriptor_[i]; }

@@ -2,12 +2,36 @@
 
 ## VSCode Setup
 
-Each developer maintains their own local, gitignored files:
+### File ownership rules
 
-- `CMakeUserPresets.json` — define your configure/build presets (inherit from `vcpkg`)
-- `.vscode/settings.json` — point cmake-tools at your preset and set `VCPKG_ROOT`
+| File | Committed | Purpose |
+| ---- | --------- | ------- |
+| `artificial-will-game.code-workspace` | yes | Shared, setup-agnostic settings and extension recommendations |
+| `.clangd` | yes | Shared clangd flag overrides (no machine-specific paths) |
+| `CMakePresets.json` | yes | Shared base presets (no paths, no compilers) |
+| `CMakeUserPresets.json` | no (gitignored) | Per-machine: preset that inherits `vcpkg`, sets compiler paths and triplet |
+| `.vscode/settings.json` | no (gitignored) | Per-machine: cmake preset selection, `VCPKG_ROOT`, clangd binary path |
 
-Open `artificial-will-game.code-workspace` to get extension recommendations and shared settings. See `README.md` for example file contents.
+**Rule:** anything that contains an absolute path or is specific to one machine/OS/architecture goes in the gitignored files. Everything else goes in the workspace file or shared configs.
+
+### Per-machine files
+
+Each developer creates their own local files. See `README.md` for examples.
+
+`CMakeUserPresets.json` — inherits the shared `vcpkg` preset and adds machine-specific compilers, triplet, and build directory:
+
+- Set `CMAKE_C_COMPILER` / `CMAKE_CXX_COMPILER` to your compiler
+- Set `VCPKG_TARGET_TRIPLET` to match your architecture (e.g. `arm64-windows`, `x64-windows`)
+- Set `VCPKG_ROOT` in the environment block
+
+`.vscode/settings.json` — points cmake-tools at your preset:
+
+- `cmake.configurePreset` / `cmake.buildPreset`
+- `cmake.environment.VCPKG_ROOT`
+- `clangd.path` — absolute path to your `clangd` binary
+- `C_Cpp.intelliSenseEngine: "disabled"` — disable cpptools IntelliSense when using clangd
+
+Open `artificial-will-game.code-workspace` to get extension recommendations and shared settings.
 
 ---
 

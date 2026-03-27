@@ -34,7 +34,7 @@ void build_boxes(World<TileType> &world, const std::string &texture_name) {
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 0u},
-        ComponentCollider{40, 56, true});
+        ComponentCollider{.hitbox_w=40, .hitbox_h=56, .pushable=true});
 
     world.add(
         ComponentGeometry{.x = 400, .y = 500, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},

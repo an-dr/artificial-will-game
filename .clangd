@@ -1,0 +1,16 @@
+CompileFlags:
+  Remove:
+    - /RTC*
+    - -RTC*
+    - -MDd
+    - -MTd
+    - /Fo*
+    - /nologo
+    - /Zi
+    - /Ob*
+    - /Od
+    - /TP
+    - /TC
+    - -external:W*
+  Add:
+    - /std:c++latest

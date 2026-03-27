@@ -13,7 +13,6 @@
 #pragma once
 #include <entt/entt.hpp>
 
-#include "../systems/BaseStateMashine.hpp"
 #include "CameraState.hpp"
 #include "TileMap.hpp"
 #include "entity_components/ComponentCameraTarget.hpp"

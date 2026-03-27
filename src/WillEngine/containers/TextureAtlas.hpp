@@ -12,6 +12,7 @@
 
 #pragma once
 #include <string>
+#include <utility>
 #include "../containers/Geometry.hpp"
 
 
@@ -21,8 +22,8 @@ class TextureAtlas : public Atlas2D {
     std::string name_id;
 
 public:
-    TextureAtlas(const std::string &id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
-        : Atlas2D(atlas_size, tile_size), name_id(id) {};
+    TextureAtlas(std::string id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
+        : Atlas2D(atlas_size, tile_size), name_id(std::move(id)) {};
 
     auto getId() const -> const std::string & { return name_id; };
 };

@@ -6,6 +6,7 @@ Checks:          >
   -modernize-use-trailing-return-type,
   -cppcoreguidelines-pro-type-vararg,
   -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-type-union-access,
   -readability-magic-numbers
 FormatStyle:     llvm
 HeaderFilterRegex: '^(include|src)/.*'

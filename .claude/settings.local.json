@@ -18,7 +18,9 @@
       "Bash(ninja --version)",
       "Bash(where vcpkg:*)",
       "Bash(cmake --preset arm64-debug)",
-      "Bash(cmake --build --preset arm64-debug)"
+      "Bash(cmake --build --preset arm64-debug)",
+      "Bash(python3 -c \"import json,sys; cmds=json.load\\(sys.stdin\\); print\\(cmds[0][''''command''''][:500]\\)\")",
+      "Bash(code --install-extension llvm-vs-code-extensions.vscode-clangd)"
     ]
   }
 }

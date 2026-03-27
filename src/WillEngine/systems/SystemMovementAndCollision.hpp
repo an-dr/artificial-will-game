@@ -11,12 +11,14 @@
 // *************************************************************************
 
 #pragma once
+#include <stdexcept>
 #include <SDL.h>
 #include <cute_c2.h>
 #include <glm/geometric.hpp>
 #include <glm/vec2.hpp>
 #include "../world/entity_components/ComponentCollider.hpp"
 #include "../world/entity_components/ComponentGeometry.hpp"
+#include "../world/entity_components/ComponentInput.hpp"
 #include "../world/entity_components/ComponentPlayer.hpp"
 #include "BaseSystem.hpp"
 
@@ -29,9 +31,9 @@ class SystemMovementAndCollision : public BaseSystem {
         float offset_x = (geometry.size_x - collider.hitbox_w) / 2.0f;
         float offset_y = (geometry.size_y - collider.hitbox_h) / 2.0f;
         c2AABB bounding_box;
-        bounding_box.min = {geometry.x + offset_x, geometry.y + offset_y};
-        bounding_box.max = {geometry.x + offset_x + collider.hitbox_w,
-                            geometry.y + offset_y + collider.hitbox_h};
+        bounding_box.min = {.x = geometry.x + offset_x, .y = geometry.y + offset_y};
+        bounding_box.max = {.x = geometry.x + offset_x + collider.hitbox_w,
+                            .y = geometry.y + offset_y + collider.hitbox_h};
         return bounding_box;
     }
 

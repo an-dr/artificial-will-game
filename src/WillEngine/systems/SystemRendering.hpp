@@ -15,6 +15,7 @@
 #include <SDL.h>
 #include <entt/entt.hpp>
 #include "../GpuAssetManager.hpp"
+#include "../world/CameraState.hpp"
 #include "../world/TileMap.hpp"
 #include "../world/entity_components/ComponentGeometry.hpp"
 #include "../world/entity_components/ComponentSprite.hpp"
@@ -126,16 +127,16 @@ public:
 
         // Render objects
         if (isRegisterSet()) {
-            auto textures = getRegistry()->view<ComponentSprite>();
+            auto textures = getRegistry()->template view<ComponentSprite>();
             for (auto entity : textures) {
-                auto &tex = textures.get<ComponentSprite>(entity);
+                auto &tex = textures.template get<ComponentSprite>(entity);
 
                 auto sdl_tex = assets_->getTexture(tex.atlas.getId());
                 if (!sdl_tex) {
                     throw std::runtime_error("texture is not found!");
                 }
 
-                auto geo = getRegistry()->try_get<ComponentGeometry>(entity);
+                auto geo = getRegistry()->template try_get<ComponentGeometry>(entity);
                 if (!geo) {
                     throw std::runtime_error("entity does not exist!");
                 }

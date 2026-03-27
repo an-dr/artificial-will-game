@@ -12,7 +12,7 @@
     "C_Cpp.errorSquiggles": "enabled",
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
     "C_Cpp.codeAnalysis.runAutomatically": true,
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/arm64-debug/compile_commands.json",
+    "markdownlint.ignore": [".clangd"],
     "files.exclude": {
       "build": true,
       "cmake-build-*": true,
@@ -25,7 +25,8 @@
       "ms-vscode.cmake-tools",
       "twxs.cmake",
       "ms-vscode.cpptools-themes",
-      "streetsidesoftware.code-spell-checker"
+      "streetsidesoftware.code-spell-checker",
+      "llvm-vs-code-extensions.vscode-clangd"
     ]
   }
 }

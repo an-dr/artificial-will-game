@@ -11,9 +11,8 @@
 // *************************************************************************
 
 #pragma once
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-
+#include <optional>
+#include <glm/glm.hpp>
 
 namespace will_engine {
 
@@ -23,7 +22,7 @@ struct Rect {
 
 struct Box {
     glm::ivec3 a, b;
-    auto getSizes() const { return glm::abs(glm::ivec3{b.x - a.x, b.y - a.y, b.z - a.z}); }
+    [[nodiscard]] auto getSizes() const { return glm::abs(glm::ivec3{b.x - a.x, b.y - a.y, b.z - a.z}); }
 };
 
 using ArraySize2D = glm::ivec2;
@@ -37,7 +36,7 @@ class Atlas2D {
     glm::ivec2 tile_size_;
     glm::ivec2 tiles_num_;
 
-    int size_total_tiles_;
+    int size_total_tiles_=0;
 
 public:
     Atlas2D(const AtlasSizePx atlas_size, const TileSizePx tile_size)

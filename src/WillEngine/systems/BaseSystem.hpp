@@ -25,9 +25,9 @@ private:
 public:
     BaseSystem() = default;
 
-    auto getRegistry() const -> entt::registry * { return registry_; }
+    [[nodiscard]] auto getRegistry() const -> entt::registry * { return registry_; }
     auto setRegistry(entt::registry *registry) -> void { registry_ = registry; }
-    auto isRegisterSet() const -> bool { return registry_ != nullptr; }
+    [[nodiscard]] auto isRegisterSet() const -> bool { return registry_ != nullptr; }
 };
 
 }
