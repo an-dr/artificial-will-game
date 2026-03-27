@@ -23,6 +23,6 @@ public:
     explicit BaseStateMashine(entt::entity id) : entity_(id) {}
 
     auto getEntittyId() const { return entity_; }
-    auto tick() -> void;
+    virtual auto tick() -> void = 0;
 };
 }  // namespace will_engine

@@ -13,6 +13,7 @@
 #pragma once
 #include <entt/entt.hpp>
 
+#include "../systems/BaseStateMashine.hpp"
 #include "CameraState.hpp"
 #include "TileMap.hpp"
 #include "entity_components/ComponentCameraTarget.hpp"
@@ -93,6 +94,7 @@ public:
         registry_.emplace<ComponentCameraTarget>(entity, ComponentCameraTarget{.follow = true});
         return {.entity = entity, .player_id = id};
     }
+
 };
 
 }  // namespace will_engine

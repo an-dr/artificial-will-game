@@ -21,6 +21,7 @@
 #include "systems/SystemInput.hpp"
 #include "systems/SystemMovementAndCollision.hpp"
 #include "systems/SystemRendering.hpp"
+#include "systems/SystemState.hpp"
 #include "ulog.h"
 #include "world/World.hpp"
 
@@ -33,6 +34,7 @@ class Game {
     std::unique_ptr<SystemRendering<int>> sys_rendering_;
     std::unique_ptr<SystemMovementAndCollision> sys_movement_;
     std::unique_ptr<SystemCamera> sys_camera_;
+    std::unique_ptr<SystemState> sys_state_;
     std::unique_ptr<GpuAssetManager> gpu_assets_;
     std::unique_ptr<World<int>> world_;
     uint64_t last_update_ms_ = 0;
@@ -64,6 +66,7 @@ public:
             std::make_unique<SystemRendering<int>>(window_->getSdlRenderer(), gpu_assets_.get());
         sys_input_ = std::make_unique<SystemInput>();
         sys_movement_ = std::make_unique<SystemMovementAndCollision>();
+        sys_state_ = std::make_unique<SystemState>();
         sys_camera_ = std::make_unique<SystemCamera>();
         sys_camera_->setViewport(800, 600);
     }
@@ -80,12 +83,19 @@ public:
         sys_input_->setRegistry(world_->getRegistry());
         sys_movement_->setRegistry(world_->getRegistry());
         sys_camera_->setRegistry(world_->getRegistry());
+        sys_state_->setRegistry(world_->getRegistry());
+        sys_state_->setStateMachineRegistry();
 
         if (auto *tm = world_->getTileMap()) {
             auto map = tm->getMapSize();
             auto tile = tm->getRenderTileSize();
             sys_camera_->setWorldBounds(map.x * tile.x, map.y * tile.y);
         }
+    }
+
+    auto addStateMachine(std::unique_ptr<BaseStateMashine> state_machine) const {
+        sys_state_->add(std::move(state_machine));
+        sys_state_->setStateMachineRegistry();
     }
 
     auto start() -> int {
@@ -108,6 +118,7 @@ public:
             sys_input_->process(dt_ms / 1000.0f);
             sys_movement_->process(dt_ms / 1000.0f);
             sys_camera_->process(dt_ms / 1000.0f, world_->getCameraState());
+            sys_state_->process();
             sys_rendering_->process(dt_ms, world_->getCameraState());
         }
 

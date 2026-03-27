@@ -28,7 +28,13 @@ public:
         state_machines_.push_back(std::move(machine));
     }
 
-    void process() {
+    void setStateMachineRegistry() {
+        for (auto &sm : state_machines_) {
+            sm->setRegistry(getRegistry());
+        }
+    }
+
+    void process() const {
         for (auto &sm : state_machines_) {
             sm->tick();
         }

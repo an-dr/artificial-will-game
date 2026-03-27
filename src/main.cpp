@@ -1,4 +1,5 @@
 #include "WillEngine/Game.hpp"
+#include "WillEngine/systems/BaseStateMashine.hpp"
 #include "WillEngine/world/entity_components/ComponentCollider.hpp"
 #include "WillEngine/world/entity_components/ComponentSprite.hpp"
 
@@ -55,10 +56,35 @@ void build_boxes(World<TileType> &world, const std::string &texture_name) {
 }
 
 
-template <typename TileType>
-void build_player(World<TileType> &world, const std::string &texture_name) {
+class StateMachinePlayer : public BaseStateMashine {
 
-    world.addPlayer(
+public:
+    explicit StateMachinePlayer(entt::entity id) : BaseStateMashine(id) {}
+
+    auto tick() -> void override {
+        if (getRegistry() == nullptr) {
+            return;
+        }
+
+        auto &[input_keyboard] = getRegistry()->get<ComponentInput>(getEntittyId());
+        auto &sprite = getRegistry()->get<ComponentSprite>(getEntittyId());
+
+        auto in_x = input_keyboard.x;
+        auto in_y = input_keyboard.y;
+        if (in_x != 0 || in_y != 0) {
+            sprite.type = SpriteType::Animated;
+        } else {
+            sprite.type = SpriteType::Static;
+            sprite.frame_float = 0.0;
+        }
+    }
+};
+
+
+template <typename TileType>
+auto build_player(Game &game, World<TileType> &world, const std::string &texture_name) {
+
+    auto [entity, id] = world.addPlayer(
         "Player One",
         ComponentGeometry{.x = 400, .y = 600, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
         ComponentSprite{.atlas =
@@ -67,6 +93,10 @@ void build_player(World<TileType> &world, const std::string &texture_name) {
                         .type = SpriteType::Animated,
                         .fps = 8u},
         ComponentCollider{.hitbox_w = 40, .hitbox_h = 56});
+
+    auto sm = std::make_unique<StateMachinePlayer>(entity);
+    game.addStateMachine(std::move(sm));
+    return entity;
 }
 
 
@@ -83,7 +113,8 @@ auto main(int argc, char *argv[]) -> int {
     auto world = std::make_unique<World<int>>();
     build_tile_map(*world, tiles);
     build_boxes(*world, box_tex);
-    build_player(*world, player_tex);
+    build_player(game, *world, player_tex);
+
     game.loadWorld(world);
 
     // Start
