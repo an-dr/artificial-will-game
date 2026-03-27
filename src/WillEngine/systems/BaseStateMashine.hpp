@@ -12,18 +12,35 @@
 
 #pragma once
 
+#include <boost/sml.hpp>
 #include "BaseSystem.hpp"
 
 namespace will_engine {
-class BaseStateMashine : public BaseSystem {
+
+class IStateMachine : public BaseSystem {
+public:
+    virtual ~IStateMachine() = default;
+    virtual auto getEntittyId() -> entt::entity = 0;
+    virtual auto tick() -> void = 0;
+};
+
+template <typename TransitionTable>
+class BaseStateMashine : public IStateMachine {
     entt::entity entity_;
+    boost::sml::sm<TransitionTable> sm_;
+
+protected:
+    template <typename TEvent>
+    auto process(TEvent event) -> void {
+        sm_.process_event(event);
+    }
 
 public:
     BaseStateMashine() = delete;
-    explicit BaseStateMashine(entt::entity id) : entity_(id) {}
+    explicit BaseStateMashine(entt::entity id)
+        : entity_(id), sm_(static_cast<IStateMachine &>(*this)) {}
     virtual ~BaseStateMashine() = default;
 
-    auto getEntittyId() const { return entity_; }
-    virtual auto tick() -> void = 0;
+    auto getEntittyId() -> entt::entity override { return entity_; }
 };
 }  // namespace will_engine

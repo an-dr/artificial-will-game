@@ -18,12 +18,12 @@
 namespace will_engine {
 class SystemState : public BaseSystem {
 
-    std::vector<std::unique_ptr<BaseStateMashine>> state_machines_;
+    std::vector<std::unique_ptr<IStateMachine>> state_machines_;
 
 public:
     SystemState() = default;
 
-    void add(std::unique_ptr<BaseStateMashine> machine) {
+    void add(std::unique_ptr<IStateMachine> machine) {
         machine->setRegistry(getRegistry());
         state_machines_.push_back(std::move(machine));
     }

@@ -93,7 +93,7 @@ public:
         }
     }
 
-    auto addStateMachine(std::unique_ptr<BaseStateMashine> state_machine) const {
+    auto addStateMachine(std::unique_ptr<IStateMachine> state_machine) const {
         sys_state_->add(std::move(state_machine));
         sys_state_->setStateMachineRegistry();
     }

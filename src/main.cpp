@@ -1,3 +1,4 @@
+#include <boost/sml.hpp>
 #include "WillEngine/Game.hpp"
 #include "WillEngine/systems/BaseStateMashine.hpp"
 #include "WillEngine/world/entity_components/ComponentCollider.hpp"
@@ -34,7 +35,7 @@ void build_boxes(World<TileType> &world, const std::string &texture_name) {
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 0u},
-        ComponentCollider{.hitbox_w=40, .hitbox_h=56, .pushable=true});
+        ComponentCollider{.hitbox_w = 40, .hitbox_h = 56, .pushable = true});
 
     world.add(
         ComponentGeometry{.x = 400, .y = 500, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
@@ -56,27 +57,53 @@ void build_boxes(World<TileType> &world, const std::string &texture_name) {
 }
 
 
-class StateMachinePlayer : public BaseStateMashine {
+namespace player_sm {
+// States
+struct Idle {};
+struct Moving {};
+
+// Events
+struct EvStartMove {};
+struct EvStop {};
+
+// Transition table
+struct Table {
+    struct OnStartMove {
+        auto operator()(IStateMachine &ctx) const -> void {
+            ctx.getRegistry()->get<ComponentSprite>(ctx.getEntittyId()).type = SpriteType::Animated;
+        }
+    };
+
+    struct OnStop {
+        auto operator()(IStateMachine &ctx) const -> void {
+            auto &sprite = ctx.getRegistry()->get<ComponentSprite>(ctx.getEntittyId());
+            sprite.type = SpriteType::Static;
+            sprite.frame_float = 0.0f;
+        }
+    };
+
+    auto operator()() const {
+        using namespace boost::sml;
+        return make_transition_table(  //
+            *state<Idle> + event<EvStartMove> / OnStartMove{} = state<Moving>,
+            state<Moving> + event<EvStop> / OnStop{} = state<Idle>  //
+        );
+    }
+};
+}  // namespace player_sm
+
+class StateMachinePlayer : public BaseStateMashine<player_sm::Table> {
 
 public:
     explicit StateMachinePlayer(entt::entity id) : BaseStateMashine(id) {}
-
     auto tick() -> void override {
-        if (getRegistry() == nullptr) {
+        if (getRegistry() == nullptr)
             return;
-        }
-
-        auto &[input_keyboard] = getRegistry()->get<ComponentInput>(getEntittyId());
-        auto &sprite = getRegistry()->get<ComponentSprite>(getEntittyId());
-
-        auto in_x = input_keyboard.x;
-        auto in_y = input_keyboard.y;
-        if (in_x != 0 || in_y != 0) {
-            sprite.type = SpriteType::Animated;
-        } else {
-            sprite.type = SpriteType::Static;
-            sprite.frame_float = 0.0;
-        }
+        auto &[input] = getRegistry()->get<ComponentInput>(getEntittyId());
+        if (input.x != 0 || input.y != 0)
+            process(player_sm::EvStartMove{});
+        else
+            process(player_sm::EvStop{});
     }
 };
 
@@ -90,7 +117,7 @@ auto build_player(Game &game, World<TileType> &world, const std::string &texture
         ComponentSprite{.atlas =
                             TextureAtlas{texture_name, AtlasSizePx{256, 64}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
-                        .type = SpriteType::Animated,
+                        .type = SpriteType::Static,
                         .fps = 8u},
         ComponentCollider{.hitbox_w = 40, .hitbox_h = 56});
 
