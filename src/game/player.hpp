@@ -12,13 +12,13 @@
 
 #pragma once
 
-#include "../will_engine/Game.hpp"
-#include "../will_engine/systems/BaseStateMashine.hpp"
-#include "../will_engine/world/World.hpp"
-#include "../will_engine/world/entity_components/ComponentCollider.hpp"
-#include "../will_engine/world/entity_components/ComponentGeometry.hpp"
-#include "../will_engine/world/entity_components/ComponentInput.hpp"
-#include "../will_engine/world/entity_components/ComponentSprite.hpp"
+#include "../engine/Game.hpp"
+#include "../engine/systems/BaseStateMashine.hpp"
+#include "../engine/world/World.hpp"
+#include "../engine/world/entity_components/ComponentCollider.hpp"
+#include "../engine/world/entity_components/ComponentGeometry.hpp"
+#include "../engine/world/entity_components/ComponentInput.hpp"
+#include "../engine/world/entity_components/ComponentSprite.hpp"
 
 using namespace will_engine;
 
@@ -75,13 +75,14 @@ public:
 
 
 template <typename TileType>
-auto build_player(Game &game, World<TileType> &world, const std::string &texture_name) {
+auto build_player(Game &game, World<TileType> &world) {
+    auto player_tex = game.loadTexture("player.png", "assets/robot_william.png");
 
     auto [entity, id] = world.addPlayer(
         "Player One",
         ComponentGeometry{.x = 400, .y = 600, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
         ComponentSprite{.atlas =
-                            TextureAtlas{texture_name, AtlasSizePx{256, 64}, TileSizePx{64, 64}},
+                            TextureAtlas{player_tex, AtlasSizePx{256, 64}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 8u},

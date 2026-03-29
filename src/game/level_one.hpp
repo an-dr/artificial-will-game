@@ -12,18 +12,22 @@
 
 #pragma once
 
-#include "../will_engine/Game.hpp"
-#include "../will_engine/world/entity_components/ComponentCollider.hpp"
-#include "../will_engine/world/entity_components/ComponentSprite.hpp"
+#include "../engine/Game.hpp"
+#include "../engine/world/entity_components/ComponentCollider.hpp"
+#include "../engine/world/entity_components/ComponentSprite.hpp"
+#include "player.hpp"
 
 using namespace will_engine;
 
 template <typename TileType>
-void build_tile_map(World<TileType> &world, const std::string &texture_name) {
+void build_tile_map(Game &game, World<TileType> &world) {
+
+    auto tiles_tex = game.loadTexture(
+        "tiles.png", "assets/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Grass.png");
 
     auto tile_map =
         TileMap<int>{ArraySize2D{16, 16}, TileSizePx{64, 64}, 0,
-                     TextureAtlas{texture_name, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
+                     TextureAtlas{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
     std::vector<int> tile_descriptor = {};
     tile_descriptor.resize(16 * 16);
     tile_descriptor[16 * 2 + 2] = 3;
@@ -37,7 +41,9 @@ void build_tile_map(World<TileType> &world, const std::string &texture_name) {
 }
 
 template <typename TileType>
-void build_boxes(World<TileType> &world, const std::string &texture_name) {
+void build_boxes(Game &game, World<TileType> &world) {
+
+    auto texture_name = game.loadTexture("box.png", "assets/box.png");
 
     world.add(
         ComponentGeometry{.x = 210, .y = 410, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
@@ -65,4 +71,13 @@ void build_boxes(World<TileType> &world, const std::string &texture_name) {
                         .type = SpriteType::Static,
                         .fps = 0u},
         ComponentCollider{.hitbox_w = 40, .hitbox_h = 56, .pushable = true});
+}
+
+auto build_level_one(Game &game) -> std::unique_ptr<World<int>> {
+    auto world = std::make_unique<World<int>>();
+    build_tile_map(game, *world);
+    build_boxes(game, *world);
+    build_player(game, *world);
+
+    return world;
 }

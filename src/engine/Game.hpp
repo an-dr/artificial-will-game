@@ -48,7 +48,7 @@ class Game {
     }
 
 public:
-    Game(std::string name = "Game") : name_(std::move(name)) {
+    explicit Game(const std::string &name = "Game") : name_(std::move(name)) {
         ulog_topic_add("Game", ULOG_OUTPUT_ALL, ULOG_LEVEL_DEBUG);
 
         if (SDL_Init(SDL_INIT_VIDEO) != 0) {
