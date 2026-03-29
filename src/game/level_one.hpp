@@ -15,7 +15,7 @@
 #include "../engine/Game.hpp"
 #include "../engine/world/entity_components/ComponentCollider.hpp"
 #include "../engine/world/entity_components/ComponentSprite.hpp"
-#include "player.hpp"
+#include "player_one.hpp"
 
 using namespace will_engine;
 
@@ -77,7 +77,7 @@ auto build_level_one(Game &game) -> std::unique_ptr<World<int>> {
     auto world = std::make_unique<World<int>>();
     build_tile_map(game, *world);
     build_boxes(game, *world);
-    build_player(game, *world);
+    build_player_one(game, *world, 400, 400);
 
     return world;
 }

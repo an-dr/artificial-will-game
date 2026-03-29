@@ -75,14 +75,13 @@ public:
 
 
 template <typename TileType>
-auto build_player(Game &game, World<TileType> &world) {
+auto build_player_one(Game &game, World<TileType> &world, float x, float y) {
     auto player_tex = game.loadTexture("player.png", "assets/robot_william.png");
 
     auto [entity, id] = world.addPlayer(
         "Player One",
-        ComponentGeometry{.x = 400, .y = 600, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSprite{.atlas =
-                            TextureAtlas{player_tex, AtlasSizePx{256, 64}, TileSizePx{64, 64}},
+        ComponentGeometry{.x = x, .y = y, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
+        ComponentSprite{.atlas = TextureAtlas{player_tex, AtlasSizePx{256, 64}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 8u},
