@@ -19,12 +19,11 @@
 
 namespace will_engine {
 
-template <typename TileType = int>
 class TileMap {
 
     // Rendering (Output)
     ArraySize2D size_;
-    std::vector<TileType> tile_descriptor_;
+    std::vector<int> tile_descriptor_;
     TileSizePx rendered_tile_size_;
 
     // Texture (Input)
@@ -33,13 +32,13 @@ class TileMap {
 
 
 public:
-    TileMap(ArraySize2D map_size_tiles, TileSizePx rendered_tile_px, TileType default_tile,
+    TileMap(ArraySize2D map_size_tiles, TileSizePx rendered_tile_px, int default_tile,
             const TextureAtlas &&tex_atlas)
         : size_(map_size_tiles), rendered_tile_size_(rendered_tile_px), tex_atlas(tex_atlas) {
         tile_descriptor_.resize(map_size_tiles.x * map_size_tiles.y, default_tile);
     }
 
-    auto load(std::vector<TileType> &&new_descriptor) {
+    auto load(std::vector<int> &&new_descriptor) {
         if (new_descriptor.size() != tile_descriptor_.size()) {
             throw std::runtime_error("Wrong size of the new tile descriptor");
         }
@@ -54,9 +53,9 @@ public:
     }
     [[nodiscard]] auto getRenderTileSize() const -> TileSizePx { return rendered_tile_size_; }
     [[nodiscard]] auto getAtlas() const -> const TextureAtlas & { return tex_atlas; }
-    auto getTileType(int x, int y) const -> TileType { return tile_descriptor_[y * size_.x + x]; }
+    auto getTileType(int x, int y) const -> int { return tile_descriptor_[y * size_.x + x]; }
 
-    auto getTileType(int i) const -> TileType { return tile_descriptor_[i]; }
+    auto getTileType(int i) const -> int { return tile_descriptor_[i]; }
 
     auto getTilePos(int i) const -> glm::ivec2 { return {i % size_.x, i / size_.x}; }
 

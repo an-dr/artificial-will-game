@@ -19,15 +19,14 @@
 
 using namespace will_engine;
 
-template <typename TileType>
-void build_tile_map(Game &game, World<TileType> &world) {
+void build_tile_map(Game &game, World &world) {
 
     auto tiles_tex = game.loadTexture(
         "tiles.png", "assets/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Grass.png");
 
     auto tile_map =
-        TileMap<int>{ArraySize2D{16, 16}, TileSizePx{64, 64}, 0,
-                     TextureAtlas{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
+        TileMap{ArraySize2D{16, 16}, TileSizePx{64, 64}, 0,
+                TextureAtlas{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
     std::vector<int> tile_descriptor = {};
     tile_descriptor.resize(16 * 16);
     tile_descriptor[16 * 2 + 2] = 3;
@@ -40,8 +39,7 @@ void build_tile_map(Game &game, World<TileType> &world) {
     world.setTileMap(std::move(tile_map));
 }
 
-template <typename TileType>
-void build_boxes(Game &game, World<TileType> &world) {
+void build_boxes(Game &game, World &world) {
 
     auto texture_name = game.loadTexture("box.png", "assets/box.png");
 
@@ -73,8 +71,8 @@ void build_boxes(Game &game, World<TileType> &world) {
         ComponentCollider{.hitbox_w = 40, .hitbox_h = 56, .pushable = true});
 }
 
-auto build_level_one(Game &game) -> std::unique_ptr<World<int>> {
-    auto world = std::make_unique<World<int>>();
+auto build_level_one(Game &game) -> std::unique_ptr<World> {
+    auto world = std::make_unique<World>();
     build_tile_map(game, *world);
     build_boxes(game, *world);
     build_player_one(game, *world, 400, 400);

@@ -24,11 +24,10 @@
 
 namespace will_engine {
 
-template <typename TileType = int>
 class SystemRendering : public BaseSystem {
     GpuAssetManager *assets_ = nullptr;
     SDL_Renderer *renderer_ = nullptr;
-    const TileMap<TileType> *tile_map_ = nullptr;
+    const TileMap *tile_map_ = nullptr;
 
     static constexpr int BACKGROUND_R = 0;
     static constexpr int BACKGROUND_G = 0;
@@ -116,7 +115,7 @@ public:
         renderer_ = renderer;
     }
 
-    auto setTileMap(const TileMap<TileType> *tile_map) { tile_map_ = tile_map; }
+    auto setTileMap(const TileMap *tile_map) { tile_map_ = tile_map; }
 
     auto process(const uint64_t dt_ms, CameraState *camera_state) const -> void {
         startFrame();

@@ -31,12 +31,12 @@ class Game {
     std::string name_;
     std::unique_ptr<Window> window_;
     std::unique_ptr<SystemInput> sys_input_;
-    std::unique_ptr<SystemRendering<int>> sys_rendering_;
+    std::unique_ptr<SystemRendering> sys_rendering_;
     std::unique_ptr<SystemMovementAndCollision> sys_movement_;
     std::unique_ptr<SystemCamera> sys_camera_;
     std::unique_ptr<SystemState> sys_state_;
     std::unique_ptr<GpuAssetManager> gpu_assets_;
-    std::unique_ptr<World<int>> world_;
+    std::unique_ptr<World> world_;
     uint64_t last_update_ms_ = 0;
 
     // update time for systems, return delta
@@ -63,7 +63,7 @@ public:
         window_ = std::make_unique<Window>(name_, 800, 600);
         gpu_assets_ = std::make_unique<GpuAssetManager>(window_->getSdlRenderer());
         sys_rendering_ =
-            std::make_unique<SystemRendering<int>>(window_->getSdlRenderer(), gpu_assets_.get());
+            std::make_unique<SystemRendering>(window_->getSdlRenderer(), gpu_assets_.get());
         sys_input_ = std::make_unique<SystemInput>();
         sys_movement_ = std::make_unique<SystemMovementAndCollision>();
         sys_state_ = std::make_unique<SystemState>();
@@ -75,7 +75,7 @@ public:
         return gpu_assets_->loadTexture(name, file_path);
     }
 
-    auto loadWorld(std::unique_ptr<World<int>> &world) -> void {
+    auto loadWorld(std::unique_ptr<World> &world) -> void {
         world_.reset();  // destroy old world!!!
         world_ = std::move(world);
         sys_rendering_->setRegistry(world_->getRegistry());

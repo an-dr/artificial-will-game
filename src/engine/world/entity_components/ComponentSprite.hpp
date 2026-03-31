@@ -23,10 +23,11 @@ struct ComponentSprite {
     float frame_float;  // float to progress smoothly
     SpriteType type = SpriteType::Static;
     unsigned int fps;
+    unsigned int frame_count = 0;  // 0 = use all frames in atlas
 
     auto bumpFrame(float dframe) {
         auto tiles = atlas.getAtlasSizeTiles();
-        auto total_frames = static_cast<float>(tiles.x * tiles.y);
+        auto total_frames = static_cast<float>(frame_count > 0 ? frame_count : tiles.x * tiles.y);
         frame_float = fmod(frame_float + dframe, total_frames);
     }
     auto getFrameInt() const { return static_cast<int>(frame_float); }

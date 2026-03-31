@@ -23,35 +23,37 @@
 using namespace will_engine;
 
 namespace player_sm {
-// States
-struct Idle {};
-struct Moving {};
-
-// Events
-struct EvStartMove {};
-struct EvStop {};
 
 // Transition table
 struct Table {
-    struct OnStartMove {
+    // States
+    struct Idle {};
+    struct Moving {};
+
+    // Events
+    struct EvStartMove {};
+    struct EvStop {};
+
+    // Actions
+    struct on_start_move {
         auto operator()(IStateMachine &ctx) const -> void {
             ctx.getRegistry()->get<ComponentSprite>(ctx.getEntittyId()).type = SpriteType::Animated;
         }
     };
 
-    struct OnStop {
+    struct on_stop {
         auto operator()(IStateMachine &ctx) const -> void {
             auto &sprite = ctx.getRegistry()->get<ComponentSprite>(ctx.getEntittyId());
             sprite.type = SpriteType::Static;
-            sprite.frame_float = 0.0f;
+            sprite.frame_float = 2.0f;
         }
     };
 
     auto operator()() const {
         using namespace boost::sml;
         return make_transition_table(  //
-            *state<Idle> + event<EvStartMove> / OnStartMove{} = state<Moving>,
-            state<Moving> + event<EvStop> / OnStop{} = state<Idle>  //
+            *state<Idle> + event<EvStartMove> / on_start_move{} = state<Moving>,
+            state<Moving> + event<EvStop> / on_stop{} = state<Idle>  //
         );
     }
 };
@@ -66,26 +68,26 @@ public:
             return;
         auto &[input] = getRegistry()->get<ComponentInput>(getEntittyId());
         if (input.x != 0 || input.y != 0)
-            process(player_sm::EvStartMove{});  // TODO: wrap process into something to update the
-                                                // registry state
+            process(player_sm::Table::EvStartMove{});  // TODO: wrap process into something to
+                                                       // update the registry state
         else
-            process(player_sm::EvStop{});
+            process(player_sm::Table::EvStop{});
     }
 };
 
 
-template <typename TileType>
-auto build_player_one(Game &game, World<TileType> &world, float x, float y) {
-    auto player_tex = game.loadTexture("player.png", "assets/robot_william.png");
+auto build_player_one(Game &game, World &world, float x, float y) {
+    auto player_tex = game.loadTexture("player.png", "assets/RPGMCharacter_v1.0/_down walk.png");
 
     auto [entity, id] = world.addPlayer(
         "Player One",
-        ComponentGeometry{.x = x, .y = y, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSprite{.atlas = TextureAtlas{player_tex, AtlasSizePx{256, 64}, TileSizePx{64, 64}},
+        ComponentGeometry{.x = x, .y = y, .z = 0, .size_x = 128, .size_y = 128, .size_z = 0},
+        ComponentSprite{.atlas = TextureAtlas{player_tex, AtlasSizePx{256, 128}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
-                        .fps = 8u},
-        ComponentCollider{.hitbox_w = 40, .hitbox_h = 56});
+                        .fps = 8u,
+                        .frame_count = 5u},
+        ComponentCollider{.hitbox_w = 20, .hitbox_h = 64});
 
     auto sm = std::make_unique<StateMachinePlayer>(entity);
     game.addStateMachine(std::move(sm));

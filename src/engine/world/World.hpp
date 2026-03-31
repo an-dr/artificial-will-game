@@ -30,10 +30,9 @@ struct PlayerCreationResult {
     unsigned int player_id;
 };
 
-template <typename TileType>
 class World {
     entt::registry registry_;
-    std::unique_ptr<TileMap<TileType>> tile_map_;
+    std::unique_ptr<TileMap> tile_map_;
     CameraState camera_state_;
 
     auto addEntity(const ComponentGeometry &object) -> entt::entity {
@@ -60,9 +59,9 @@ public:
 
     auto getRegistry() -> entt::registry * { return &registry_; }
     auto getCameraState() -> CameraState * { return &camera_state_; }
-    auto getTileMap() -> TileMap<TileType> * { return tile_map_.get(); }
-    auto setTileMap(TileMap<TileType> &&tile_map) {
-        tile_map_ = std::make_unique<TileMap<TileType>>(std::move(tile_map));
+    auto getTileMap() -> TileMap * { return tile_map_.get(); }
+    auto setTileMap(TileMap &&tile_map) {
+        tile_map_ = std::make_unique<TileMap>(std::move(tile_map));
     }
 
     auto add(const ComponentGeometry &geometry, const ComponentSprite &sprite,
