@@ -81,7 +81,15 @@ class SystemRendering : public BaseSystem {
                                    .y = static_cast<int>(geo->y - camera->position.y),
                                    .w = geo->size_x,
                                    .h = geo->size_y};
-        SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
+        auto flip = SDL_FLIP_NONE;
+        if (sprite->transform.flip_horizontal) {
+            flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_HORIZONTAL);
+        }
+        if (sprite->transform.flip_vertical) {
+            flip = static_cast<SDL_RendererFlip>(flip | SDL_FLIP_VERTICAL);
+        }
+
+        SDL_RenderCopyEx(renderer_, sdl_tex, &texture_frame, &location_frame, 0.0, nullptr, flip);
     }
 
     static auto process_animation(float dt, ComponentSpriteRendering *sprite) -> void {

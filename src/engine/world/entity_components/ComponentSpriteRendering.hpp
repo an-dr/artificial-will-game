@@ -17,10 +17,15 @@
 
 namespace will_engine {
 
+struct SpriteTransform {
+    bool flip_horizontal = false;
+    bool flip_vertical = false;
+};
 
 struct ComponentSpriteRendering {
     SpriteSharedPtr sprite;
     float frame_float = 0.0f;  // float to progress smoothly
+    SpriteTransform transform{};
 
     auto bumpFrame(float dframe) {
         if (!isAnimated())
@@ -61,6 +66,7 @@ struct ComponentSpriteRendering {
             frame_float = 0.0f;
         }
     }
+    auto setTransform(SpriteTransform new_transform) -> void { transform = new_transform; }
 };
 
 
