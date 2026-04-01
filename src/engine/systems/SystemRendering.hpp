@@ -36,14 +36,13 @@ class SystemRendering : public BaseSystem {
 
 
     auto draw_tilemap(const CameraState *camera) const -> void {
-        if (!tile_map_ || tile_map_->getTextureName().empty())
-            return;
-
-        SDL_Texture *tileset = assets_->getTexture(tile_map_->getTextureName());
-        if (!tileset)
+        if (!tile_map_)
             return;
 
         const auto &atlas = tile_map_->getAtlas();
+        SDL_Texture *tileset = assets_->getTexture(atlas.getTextureId());
+        if (!tileset)
+            return;
 
         for (int i = 0; i < tile_map_->getMapTileCount(); i++) {
             const auto src_rect = atlas.getTile(tile_map_->getTileType(i));
@@ -64,7 +63,12 @@ class SystemRendering : public BaseSystem {
 
     auto draw_static(const ComponentGeometry *geo, const ComponentSpriteRendering *sprite,
                      SDL_Texture *sdl_tex, const CameraState *camera) const -> void {
-        auto tile = sprite->sprite.getTile(sprite->getFrameInt());
+        if (!sprite->sprite) {
+            throw std::runtime_error("sprite definition is not set!");
+        }
+
+        const auto &atlas = sprite->sprite->getAtlas();
+        auto tile = atlas.getTile(sprite->getFrameInt());
         if (!tile.has_value()) {
             throw std::runtime_error("Sprite map does not have that frame (frame > tiles_max).`");
         }
@@ -81,12 +85,12 @@ class SystemRendering : public BaseSystem {
     }
 
     static auto process_animation(float dt, ComponentSpriteRendering *sprite) -> void {
-        if (sprite->type == SpriteType::Static)
+        if (!sprite->isAnimated())
             return;
 
         // calculate frames
         float d_secs = dt / 1000.0f;
-        auto d_frames = sprite->fps * d_secs;
+        auto d_frames = sprite->sprite->getAnimation()->fps * d_secs;
 
         sprite->bumpFrame(d_frames);
     }
@@ -129,8 +133,12 @@ public:
             auto textures = getRegistry()->template view<ComponentSpriteRendering>();
             for (auto entity : textures) {
                 auto &tex = textures.template get<ComponentSpriteRendering>(entity);
+                if (!tex.sprite) {
+                    throw std::runtime_error("sprite definition is not set!");
+                }
 
-                auto sdl_tex = assets_->getTexture(tex.sprite.getTextureId());
+                const auto &atlas = tex.sprite->getAtlas();
+                auto sdl_tex = assets_->getTexture(atlas.getTextureId());
                 if (!sdl_tex) {
                     throw std::runtime_error("texture is not found!");
                 }

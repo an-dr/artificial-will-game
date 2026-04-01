@@ -12,6 +12,7 @@
 
 #pragma once
 #include <optional>
+#include <string>
 #include <glm/glm.hpp>
 
 namespace will_engine {
@@ -32,6 +33,7 @@ using TileSizePx = glm::ivec2;
 
 class Atlas2D {
 
+    std::string texture_id_;
     glm::ivec2 atlas_size_;
     glm::ivec2 tile_size_;
     glm::ivec2 tiles_num_;
@@ -39,8 +41,8 @@ class Atlas2D {
     int size_total_tiles_=0;
 
 public:
-    Atlas2D(const AtlasSizePx atlas_size, const TileSizePx tile_size)
-        : atlas_size_(atlas_size), tile_size_(tile_size),
+    Atlas2D(std::string texture_id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
+        : texture_id_(std::move(texture_id)), atlas_size_(atlas_size), tile_size_(tile_size),
           tiles_num_{(atlas_size.x / tile_size.x), (atlas_size.y / tile_size.y)},
           size_total_tiles_((atlas_size.x / tile_size.x) * (atlas_size.y / tile_size.y)) {}
 
@@ -66,6 +68,7 @@ public:
         return getTile(col, row);
     }
 
+    [[nodiscard]] auto getTextureId() const -> const std::string & { return texture_id_; }
     [[nodiscard]] auto getAtlasSizePixels() const { return atlas_size_; }
     [[nodiscard]] auto getAtlasSizeTiles() const { return glm::ivec2{tiles_num_.x, tiles_num_.y}; }
     [[nodiscard]] auto getTileSize() const { return glm::ivec2{tile_size_.x, tile_size_.y}; }

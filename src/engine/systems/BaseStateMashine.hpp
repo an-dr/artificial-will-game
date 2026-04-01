@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <utility>
 #include <boost/sml.hpp>
 #include "BaseSystem.hpp"
 
@@ -39,6 +40,8 @@ public:
     BaseStateMashine() = delete;
     explicit BaseStateMashine(entt::entity id)
         : entity_(id), sm_(static_cast<IStateMachine &>(*this)) {}
+    BaseStateMashine(entt::entity id, TransitionTable table)
+        : entity_(id), sm_(std::move(table), static_cast<IStateMachine &>(*this)) {}
     virtual ~BaseStateMashine() = default;
 
     auto getEntittyId() -> entt::entity override { return entity_; }

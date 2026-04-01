@@ -12,10 +12,10 @@
 
 #pragma once
 #include <stdexcept>
-#include <string>
+#include <utility>
 #include <vector>
 #include <glm/vec2.hpp>
-#include "../containers/Sprite.hpp"
+#include "../containers/Geometry.hpp"
 
 namespace will_engine {
 
@@ -27,14 +27,13 @@ class TileMap {
     TileSizePx rendered_tile_size_;
 
     // Texture (Input)
-    std::string texture_name_;
-    Sprite tex_atlas;
+    Atlas2D atlas_;
 
 
 public:
     TileMap(ArraySize2D map_size_tiles, TileSizePx rendered_tile_px, int default_tile,
-            const Sprite &&tex_atlas)
-        : size_(map_size_tiles), rendered_tile_size_(rendered_tile_px), tex_atlas(tex_atlas) {
+            Atlas2D atlas)
+        : size_(map_size_tiles), rendered_tile_size_(rendered_tile_px), atlas_(std::move(atlas)) {
         tile_descriptor_.resize(map_size_tiles.x * map_size_tiles.y, default_tile);
     }
 
@@ -45,14 +44,11 @@ public:
         tile_descriptor_ = std::move(new_descriptor);
     }
 
-    [[nodiscard]] auto getTextureName() const -> const std::string & { return tex_atlas.getTextureId(); }
     [[nodiscard]] auto getMapSize() const -> ArraySize2D { return size_; };
     [[nodiscard]] auto getMapTileCount() const -> int { return size_.x * size_.y; }
-    [[nodiscard]] auto getTextureTileSize() const -> TileSizePx {
-        return tex_atlas.getAtlasSizeTiles();
-    }
     [[nodiscard]] auto getRenderTileSize() const -> TileSizePx { return rendered_tile_size_; }
-    [[nodiscard]] auto getAtlas() const -> const Sprite & { return tex_atlas; }
+    [[nodiscard]] auto getAtlas() -> Atlas2D & { return atlas_; }
+    [[nodiscard]] auto getAtlas() const -> const Atlas2D & { return atlas_; }
     auto getTileType(int x, int y) const -> int { return tile_descriptor_[y * size_.x + x]; }
 
     auto getTileType(int i) const -> int { return tile_descriptor_[i]; }

@@ -15,8 +15,6 @@
 namespace will_engine {
 
 struct ComponentCollider {
-    int hitbox_w;
-    int hitbox_h;
     bool pushable = false;
 };
 

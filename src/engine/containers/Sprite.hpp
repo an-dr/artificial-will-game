@@ -11,24 +11,41 @@
 // *************************************************************************
 
 #pragma once
-#include <string>
+#include <memory>
 #include <utility>
 #include "../containers/Geometry.hpp"
 
-enum class SpriteType { Static, Animated };
-
 namespace will_engine {
 
-class Sprite : public Atlas2D {
-    std::string texture_id_;
+using SpiteHitbox = glm::ivec2;
+
+struct SpriteAnimationDescriptor {
+    unsigned int fps = 0;
+    unsigned int frame_count = 0;  // 0 = use all frames in atlas
+};
+
+class Sprite {
+    Atlas2D atlas_;
+    std::optional<SpiteHitbox> hitbox_;
+    std::optional<SpriteAnimationDescriptor> animation_;
     // TODO: move ComponentSpriteRendering components specific the animation here
 
 public:
-    Sprite(std::string id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
-        : Atlas2D(atlas_size, tile_size), texture_id_(std::move(id)) {};
+    explicit Sprite(Atlas2D atlas, std::optional<SpiteHitbox> hitbox = std::nullopt)
+        : atlas_(std::move(atlas)), hitbox_(hitbox) {};
+    Sprite(Atlas2D atlas, std::optional<SpiteHitbox> hitbox,
+           std::optional<SpriteAnimationDescriptor> animation)
+        : atlas_(std::move(atlas)), hitbox_(hitbox), animation_(animation) {};
 
-    auto getTextureId() const -> const std::string & { return texture_id_; };
+    [[nodiscard]] auto getAnimation() const -> const std::optional<SpriteAnimationDescriptor> & {
+        return animation_;
+    }
+    [[nodiscard]] auto getAtlas() -> Atlas2D & { return atlas_; }
+    [[nodiscard]] auto getAtlas() const -> const Atlas2D & { return atlas_; }
+    [[nodiscard]] auto getHitbox() const -> const std::optional<SpiteHitbox> & { return hitbox_; }
+    [[nodiscard]] auto isAnimation() const { return animation_.has_value(); }
 };
 
+using SpriteSharedPtr = std::shared_ptr<const Sprite>;
 
 }  // namespace will_engine

@@ -11,6 +11,7 @@
 // *************************************************************************
 
 #pragma once
+#include <cmath>
 #include "../../containers/Sprite.hpp"
 
 
@@ -18,18 +19,48 @@ namespace will_engine {
 
 
 struct ComponentSpriteRendering {
-    Sprite sprite;
-    float frame_float;  // float to progress smoothly
-    SpriteType type = SpriteType::Static;
-    unsigned int fps;
-    unsigned int frame_count = 0;  // 0 = use all frames in atlas
+    SpriteSharedPtr sprite;
+    float frame_float = 0.0f;  // float to progress smoothly
 
     auto bumpFrame(float dframe) {
-        auto tiles = sprite.getAtlasSizeTiles();
-        auto total_frames = static_cast<float>(frame_count > 0 ? frame_count : tiles.x * tiles.y);
+        if (!isAnimated())
+            return;
+
+        const auto &atlas = sprite->getAtlas();
+        const auto &animation = sprite->getAnimation().value();
+        auto tiles = atlas.getAtlasSizeTiles();
+        auto total_frames = static_cast<float>(animation.frame_count > 0 ? animation.frame_count
+                                                                         : tiles.x * tiles.y);
         frame_float = fmod(frame_float + dframe, total_frames);
     }
-    auto getFrameInt() const { return static_cast<int>(frame_float); }
+    [[nodiscard]] auto getFrameInt() const { return isAnimated() ? static_cast<int>(frame_float) : 0; }
+    [[nodiscard]] auto getFrameCount() const -> unsigned int {
+        if (!sprite)
+            return 0;
+
+        const auto &animation = sprite->getAnimation();
+        if (!animation.has_value())
+            return 1;
+
+        auto tiles = sprite->getAtlas().getAtlasSizeTiles();
+        return animation->frame_count > 0 ? animation->frame_count
+                                          : static_cast<unsigned int>(tiles.x * tiles.y);
+    }
+    [[nodiscard]] auto isAnimated() const -> bool {
+        if (!sprite || !sprite->getAnimation().has_value())
+            return false;
+
+        return sprite->getAnimation()->fps > 0 && getFrameCount() > 1;
+    }
+    auto setSprite(SpriteSharedPtr new_sprite, bool reset_frame = true) -> void {
+        if (sprite == new_sprite)
+            return;
+
+        sprite = std::move(new_sprite);
+        if (reset_frame) {
+            frame_float = 0.0f;
+        }
+    }
 };
 
 

@@ -24,9 +24,8 @@ void build_tile_map(Game &game, World &world) {
     auto tiles_tex = game.loadTexture(
         "tiles.png", "assets/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Grass.png");
 
-    auto tile_map =
-        TileMap{ArraySize2D{16, 16}, TileSizePx{64, 64}, 0,
-                Sprite{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
+    auto atlas = Atlas2D{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}};
+    auto tile_map = TileMap{ArraySize2D{16, 16}, TileSizePx{64, 64}, 0, atlas};
     std::vector<int> tile_descriptor = {};
     tile_descriptor.resize(16 * 16);
     tile_descriptor[16 * 2 + 2] = 3;
@@ -42,33 +41,23 @@ void build_tile_map(Game &game, World &world) {
 void build_boxes(Game &game, World &world) {
 
     auto texture_name = game.loadTexture("box.png", "assets/box.png");
+    auto atlas = Atlas2D{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}};
+    auto sprite = std::make_shared<Sprite>(atlas, SpiteHitbox{40, 56});
 
     world.add(
         ComponentGeometry{.x = 210, .y = 410, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSpriteRendering{.sprite =
-                            Sprite{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
-                        .frame_float = 0.0f,
-                        .type = SpriteType::Static,
-                        .fps = 0u},
-        ComponentCollider{.hitbox_w = 40, .hitbox_h = 56, .pushable = true});
+        ComponentSpriteRendering{.sprite = sprite, .frame_float = 0.0f},
+        ComponentCollider{.pushable = true});
 
     world.add(
         ComponentGeometry{.x = 400, .y = 500, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSpriteRendering{.sprite =
-                            Sprite{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
-                        .frame_float = 0.0f,
-                        .type = SpriteType::Static,
-                        .fps = 0u},
-        ComponentCollider{.hitbox_w = 40, .hitbox_h = 56, .pushable = true});
+        ComponentSpriteRendering{.sprite = sprite, .frame_float = 0.0f},
+        ComponentCollider{.pushable = true});
 
     world.add(
         ComponentGeometry{.x = 500, .y = 400, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSpriteRendering{.sprite =
-                            Sprite{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
-                        .frame_float = 0.0f,
-                        .type = SpriteType::Static,
-                        .fps = 0u},
-        ComponentCollider{.hitbox_w = 40, .hitbox_h = 56, .pushable = true});
+        ComponentSpriteRendering{.sprite = sprite, .frame_float = 0.0f},
+        ComponentCollider{.pushable = true});
 }
 
 auto build_level_one(Game &game) -> std::unique_ptr<World> {
