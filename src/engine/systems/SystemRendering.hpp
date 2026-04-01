@@ -18,7 +18,7 @@
 #include "../world/CameraState.hpp"
 #include "../world/TileMap.hpp"
 #include "../world/entity_components/ComponentGeometry.hpp"
-#include "../world/entity_components/ComponentSprite.hpp"
+#include "../world/entity_components/ComponentSpriteRendering.hpp"
 #include "BaseSystem.hpp"
 
 
@@ -62,9 +62,9 @@ class SystemRendering : public BaseSystem {
         }
     }
 
-    auto draw_static(const ComponentGeometry *geo, const ComponentSprite *sprite,
+    auto draw_static(const ComponentGeometry *geo, const ComponentSpriteRendering *sprite,
                      SDL_Texture *sdl_tex, const CameraState *camera) const -> void {
-        auto tile = sprite->atlas.getTile(sprite->getFrameInt());
+        auto tile = sprite->sprite.getTile(sprite->getFrameInt());
         if (!tile.has_value()) {
             throw std::runtime_error("Sprite map does not have that frame (frame > tiles_max).`");
         }
@@ -80,7 +80,7 @@ class SystemRendering : public BaseSystem {
         SDL_RenderCopy(renderer_, sdl_tex, &texture_frame, &location_frame);
     }
 
-    static auto process_animation(float dt, ComponentSprite *sprite) -> void {
+    static auto process_animation(float dt, ComponentSpriteRendering *sprite) -> void {
         if (sprite->type == SpriteType::Static)
             return;
 
@@ -126,11 +126,11 @@ public:
 
         // Render objects
         if (isRegisterSet()) {
-            auto textures = getRegistry()->template view<ComponentSprite>();
+            auto textures = getRegistry()->template view<ComponentSpriteRendering>();
             for (auto entity : textures) {
-                auto &tex = textures.template get<ComponentSprite>(entity);
+                auto &tex = textures.template get<ComponentSpriteRendering>(entity);
 
-                auto sdl_tex = assets_->getTexture(tex.atlas.getId());
+                auto sdl_tex = assets_->getTexture(tex.sprite.getTextureId());
                 if (!sdl_tex) {
                     throw std::runtime_error("texture is not found!");
                 }

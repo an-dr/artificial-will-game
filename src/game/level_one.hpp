@@ -14,7 +14,7 @@
 
 #include "../engine/Game.hpp"
 #include "../engine/world/entity_components/ComponentCollider.hpp"
-#include "../engine/world/entity_components/ComponentSprite.hpp"
+#include "../engine/world/entity_components/ComponentSpriteRendering.hpp"
 #include "player_one.hpp"
 
 using namespace will_engine;
@@ -26,7 +26,7 @@ void build_tile_map(Game &game, World &world) {
 
     auto tile_map =
         TileMap{ArraySize2D{16, 16}, TileSizePx{64, 64}, 0,
-                TextureAtlas{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
+                Sprite{tiles_tex, AtlasSizePx{256, 256}, TileSizePx{64, 64}}};
     std::vector<int> tile_descriptor = {};
     tile_descriptor.resize(16 * 16);
     tile_descriptor[16 * 2 + 2] = 3;
@@ -45,8 +45,8 @@ void build_boxes(Game &game, World &world) {
 
     world.add(
         ComponentGeometry{.x = 210, .y = 410, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSprite{.atlas =
-                            TextureAtlas{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
+        ComponentSpriteRendering{.sprite =
+                            Sprite{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 0u},
@@ -54,8 +54,8 @@ void build_boxes(Game &game, World &world) {
 
     world.add(
         ComponentGeometry{.x = 400, .y = 500, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSprite{.atlas =
-                            TextureAtlas{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
+        ComponentSpriteRendering{.sprite =
+                            Sprite{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 0u},
@@ -63,8 +63,8 @@ void build_boxes(Game &game, World &world) {
 
     world.add(
         ComponentGeometry{.x = 500, .y = 400, .z = 0, .size_x = 64, .size_y = 64, .size_z = 0},
-        ComponentSprite{.atlas =
-                            TextureAtlas{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
+        ComponentSpriteRendering{.sprite =
+                            Sprite{texture_name, AtlasSizePx{64, 64}, TileSizePx{64, 64}},
                         .frame_float = 0.0f,
                         .type = SpriteType::Static,
                         .fps = 0u},

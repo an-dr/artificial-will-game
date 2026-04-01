@@ -20,7 +20,7 @@
 #include "entity_components/ComponentGeometry.hpp"
 #include "entity_components/ComponentInput.hpp"
 #include "entity_components/ComponentPlayer.hpp"
-#include "entity_components/ComponentSprite.hpp"
+#include "entity_components/ComponentSpriteRendering.hpp"
 #include "entity_components/ComponentType.hpp"
 
 namespace will_engine {
@@ -64,11 +64,11 @@ public:
         tile_map_ = std::make_unique<TileMap>(std::move(tile_map));
     }
 
-    auto add(const ComponentGeometry &geometry, const ComponentSprite &sprite,
+    auto add(const ComponentGeometry &geometry, const ComponentSpriteRendering &sprite,
              std::optional<const ComponentCollider> collider = std::nullopt) -> entt::entity {
         const auto entity = registry_.create();
         registry_.emplace<ComponentGeometry>(entity, geometry);
-        registry_.emplace<ComponentSprite>(entity, sprite);
+        registry_.emplace<ComponentSpriteRendering>(entity, sprite);
         registry_.emplace<ComponentType>(entity, ComponentType{});
 
         if (collider.has_value()) {
@@ -78,7 +78,7 @@ public:
     }
 
     auto addPlayer(const std::string &name, const ComponentGeometry &geometry,
-                   const ComponentSprite &sprite, const ComponentCollider &collider)
+                   const ComponentSpriteRendering &sprite, const ComponentCollider &collider)
         -> PlayerCreationResult {
         auto entity = add(geometry, sprite, collider);
 

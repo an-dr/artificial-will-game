@@ -15,17 +15,19 @@
 #include <utility>
 #include "../containers/Geometry.hpp"
 
+enum class SpriteType { Static, Animated };
 
 namespace will_engine {
 
-class TextureAtlas : public Atlas2D {
-    std::string name_id;
+class Sprite : public Atlas2D {
+    std::string texture_id_;
+    // TODO: move ComponentSpriteRendering components specific the animation here
 
 public:
-    TextureAtlas(std::string id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
-        : Atlas2D(atlas_size, tile_size), name_id(std::move(id)) {};
+    Sprite(std::string id, const AtlasSizePx atlas_size, const TileSizePx tile_size)
+        : Atlas2D(atlas_size, tile_size), texture_id_(std::move(id)) {};
 
-    auto getId() const -> const std::string & { return name_id; };
+    auto getTextureId() const -> const std::string & { return texture_id_; };
 };
 
 
