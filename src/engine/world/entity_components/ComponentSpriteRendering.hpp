@@ -25,6 +25,7 @@ struct SpriteTransform {
 struct ComponentSpriteRendering {
     SpriteSharedPtr sprite;
     float frame_float = 0.0f;  // float to progress smoothly
+    bool animation_loop = true;
     SpriteTransform transform{};
 
     auto bumpFrame(float dframe) {
@@ -36,9 +37,23 @@ struct ComponentSpriteRendering {
         auto tiles = atlas.getAtlasSizeTiles();
         auto total_frames = static_cast<float>(animation.frame_count > 0 ? animation.frame_count
                                                                          : tiles.x * tiles.y);
-        frame_float = fmod(frame_float + dframe, total_frames);
+        if (animation_loop) {
+            frame_float = fmod(frame_float + dframe, total_frames);
+            return;
+        }
+
+        frame_float = std::min(frame_float + dframe, total_frames);
     }
-    [[nodiscard]] auto getFrameInt() const { return isAnimated() ? static_cast<int>(frame_float) : 0; }
+    [[nodiscard]] auto getFrameInt() const {
+        if (!isAnimated())
+            return 0;
+
+        const auto frame_count = getFrameCount();
+        if (frame_count == 0)
+            return 0;
+
+        return std::min(static_cast<int>(frame_float), static_cast<int>(frame_count) - 1);
+    }
     [[nodiscard]] auto getFrameCount() const -> unsigned int {
         if (!sprite)
             return 0;
@@ -57,6 +72,9 @@ struct ComponentSpriteRendering {
 
         return sprite->getAnimation()->fps > 0 && getFrameCount() > 1;
     }
+    [[nodiscard]] auto isAnimationFinished() const -> bool {
+        return isAnimated() && !animation_loop && frame_float >= static_cast<float>(getFrameCount());
+    }
     auto setSprite(SpriteSharedPtr new_sprite, bool reset_frame = true) -> void {
         if (sprite == new_sprite)
             return;
@@ -66,6 +84,7 @@ struct ComponentSpriteRendering {
             frame_float = 0.0f;
         }
     }
+    auto setAnimationLoop(bool should_loop) -> void { animation_loop = should_loop; }
     auto setTransform(SpriteTransform new_transform) -> void { transform = new_transform; }
 };
 

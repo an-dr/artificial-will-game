@@ -39,6 +39,11 @@ class SystemInput : public BaseSystem {
         return direction;
     }
 
+    static auto get_attack([[maybe_unused]] unsigned int player_id) -> bool {
+        const Uint8 *key_state = SDL_GetKeyboardState(nullptr);
+        return key_state[SDL_SCANCODE_SPACE] != 0;
+    }
+
 public:
     SystemInput() = default;
 
@@ -52,6 +57,7 @@ public:
             auto direction = get_direction(player.player_id);
             auto input = &reg->get<ComponentInput>(player_entity);
             input->input_keyboard = direction;
+            input->attack_pressed = get_attack(player.player_id);
         }
     }
 };

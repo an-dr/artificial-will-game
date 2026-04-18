@@ -12,8 +12,10 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "../engine/Game.hpp"
-#include "../engine/systems/BaseStateMashine.hpp"
+#include "../engine/systems/BaseStateMachine.hpp"
 #include "../engine/world/World.hpp"
 #include "../engine/world/entity_components/ComponentCollider.hpp"
 #include "../engine/world/entity_components/ComponentGeometry.hpp"
@@ -29,16 +31,22 @@ struct Table {
     // States
     struct Idle {};
     struct Moving {};
+    struct Attacking {};
 
     // Events
     struct EvStartMove {};
     struct EvStop {};
+    struct EvStartAttack {};
+    struct EvStopAttack {};
 
     auto operator()() const {
         using namespace boost::sml;
         return make_transition_table(  //
             *state<Idle> + event<EvStartMove> = state<Moving>,
-            state<Moving> + event<EvStop> = state<Idle>  //
+            state<Idle> + event<EvStartAttack> = state<Attacking>,
+            state<Moving> + event<EvStop> = state<Idle>,
+            state<Moving> + event<EvStartAttack> = state<Attacking>,
+            state<Attacking> + event<EvStopAttack> = state<Idle>  //
         );
     }
 };
@@ -53,11 +61,15 @@ struct PlayerSpriteSet {
     SpriteSharedPtr walk_down;
     SpriteSharedPtr walk_up;
     SpriteSharedPtr walk_side;
+    SpriteSharedPtr attack_side;
+    SpriteSharedPtr attack_up;
+    SpriteSharedPtr attack_down;
 };
 
-class StateMachinePlayer : public BaseStateMashine<player_sm::Table> {
+class StateMachinePlayer : public BaseStateMachine<player_sm::Table> {
     PlayerSpriteSet sprites_;
     PlayerFacing facing_ = PlayerFacing::Down;
+    bool attack_button_was_pressed_ = false;
 
     auto updateFacing(const glm::vec2 &input) -> void {
         if (input.x == 0.0f && input.y == 0.0f)
@@ -76,82 +88,164 @@ class StateMachinePlayer : public BaseStateMashine<player_sm::Table> {
         if (registry == nullptr)
             return;
 
-        updateFacing(input);
+        auto &rendering = registry->get<ComponentSpriteRendering>(getEntityId());
+        const bool attacking = isState<player_sm::Table::Attacking>();
+        const bool moving = isState<player_sm::Table::Moving>();
 
-        const bool moving = input.x != 0.0f || input.y != 0.0f;
-        auto &rendering = registry->get<ComponentSpriteRendering>(getEntittyId());
+        if (!attacking) {
+            updateFacing(input);
+        }
 
         SpriteSharedPtr next_sprite;
         SpriteTransform next_transform{};
 
         switch (facing_) {
-            case PlayerFacing::Down:
+        case PlayerFacing::Down:
+            if (attacking) {
+                next_sprite = sprites_.attack_down;
+            } else {
                 next_sprite = moving ? sprites_.walk_down : sprites_.idle_down;
-                break;
-            case PlayerFacing::Up:
+            }
+            break;
+        case PlayerFacing::Up:
+            if (attacking) {
+                next_sprite = sprites_.attack_up;
+            } else {
                 next_sprite = moving ? sprites_.walk_up : sprites_.idle_up;
-                break;
-            case PlayerFacing::Left:
+            }
+            break;
+        case PlayerFacing::Left:
+            if (attacking) {
+                next_sprite = sprites_.attack_side;
+            } else {
                 next_sprite = moving ? sprites_.walk_side : sprites_.idle_side;
-                break;
-            case PlayerFacing::Right:
+            }
+            break;
+        case PlayerFacing::Right:
+            if (attacking) {
+                next_sprite = sprites_.attack_side;
+            } else {
                 next_sprite = moving ? sprites_.walk_side : sprites_.idle_side;
-                next_transform.flip_horizontal = true;
-                break;
+            }
+            next_transform.flip_horizontal = true;
+            break;
         }
 
         rendering.setSprite(std::move(next_sprite));
+        rendering.setAnimationLoop(!attacking);
         rendering.setTransform(next_transform);
+    }
+
+    auto syncLocomotionState(const ComponentInput &input) -> void {
+        if (input.input_keyboard.x != 0 || input.input_keyboard.y != 0)
+            process(player_sm::Table::EvStartMove{});
+        else
+            process(player_sm::Table::EvStop{});
     }
 
 public:
     StateMachinePlayer(entt::entity id, PlayerSpriteSet sprites)
-        : BaseStateMashine(id), sprites_(std::move(sprites)) {}
+        : BaseStateMachine(id), sprites_(std::move(sprites)) {}
     auto tick() -> void override {
         if (getRegistry() == nullptr)
             return;
-        const auto &input = getRegistry()->get<ComponentInput>(getEntittyId()).input_keyboard;
-        updateSpritePresentation(input);
-        if (input.x != 0 || input.y != 0)
-            process(player_sm::Table::EvStartMove{});  // TODO: wrap process into something to
-                                                       // update the registry state
-        else
-            process(player_sm::Table::EvStop{});
+
+        const auto &input = getRegistry()->get<ComponentInput>(getEntityId());
+        auto &rendering = getRegistry()->get<ComponentSpriteRendering>(getEntityId());
+        const bool attack_just_pressed = input.attack_pressed && !attack_button_was_pressed_;
+        attack_button_was_pressed_ = input.attack_pressed;
+
+        if (isState<player_sm::Table::Attacking>()) {
+            if (rendering.isAnimationFinished()) {
+                process(player_sm::Table::EvStopAttack{});
+                syncLocomotionState(input);
+            }
+        } else if (attack_just_pressed) {
+            process(player_sm::Table::EvStartAttack{});
+        } else {
+            syncLocomotionState(input);
+        }
+
+        updateSpritePresentation(input.input_keyboard);
     }
 };
 
 
 auto build_player_one(Game &game, World &world, float x, float y) {
-    auto player_walk_down =
-        game.loadTexture("player::walk::down", "assets/RPGMCharacter_v1.0/_down walk.png");
-    auto player_idle_down =
-        game.loadTexture("player::idle::down", "assets/RPGMCharacter_v1.0/_down idle.png");
-    auto player_walk_side =
-        game.loadTexture("player::walk::side", "assets/RPGMCharacter_v1.0/_side walk.png");
-    auto player_idle_side =
-        game.loadTexture("player::idle::side", "assets/RPGMCharacter_v1.0/_side idle.png");
-    auto player_walk_up = game.loadTexture("player::walk::up", "assets/RPGMCharacter_v1.0/_up walk.png");
-    auto player_idle_up = game.loadTexture("player::idle::up", "assets/RPGMCharacter_v1.0/_up idle.png");
 
-    auto sprite_idle_down = std::make_shared<Sprite>(
-        Atlas2D{player_idle_down, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
-        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
-    auto sprite_walk_down = std::make_shared<Sprite>(
-        Atlas2D{player_walk_down, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
-        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
-    auto sprite_idle_side = std::make_shared<Sprite>(
-        Atlas2D{player_idle_side, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
-        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
-    auto sprite_walk_side = std::make_shared<Sprite>(
-        Atlas2D{player_walk_side, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
-        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
+    // player::idle::up
+    //  ----------------
+    auto texture_idle_up = game.loadTexture("player::idle::up",  //
+                                            "assets/RPGMCharacter_v1.0/_up idle.png");
     auto sprite_idle_up = std::make_shared<Sprite>(
-        Atlas2D{player_idle_up, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
-        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
-    auto sprite_walk_up = std::make_shared<Sprite>(
-        Atlas2D{player_walk_up, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
+        Atlas2D{texture_idle_up, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
         SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
 
+    // player::idle::down
+    // ----------------
+    auto texture_idle_down = game.loadTexture("player::idle::down",  //
+                                              "assets/RPGMCharacter_v1.0/_down idle.png");
+    auto sprite_idle_down = std::make_shared<Sprite>(
+        Atlas2D{texture_idle_down, AtlasSizePx{256, 128}, TileSizePx{64, 64}},  //
+        SpiteHitbox{20, 54},                                                    //
+        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
+
+    // player::idle::side
+    //  ----------------
+    auto texture_idle_side = game.loadTexture("player::idle::side",  //
+                                              "assets/RPGMCharacter_v1.0/_side idle.png");
+    auto sprite_idle_side = std::make_shared<Sprite>(
+        Atlas2D{texture_idle_side, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
+        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
+
+    // player::walk::side
+    // ----------------
+    auto texture_walk_side = game.loadTexture("player::walk::side",  //
+                                              "assets/RPGMCharacter_v1.0/_side walk.png");
+    auto sprite_walk_side = std::make_shared<Sprite>(
+        Atlas2D{texture_walk_side, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
+        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
+
+    // player::walk::up
+    // ----------------
+    auto texture_walk_up = game.loadTexture("player::walk::up",  //
+                                            "assets/RPGMCharacter_v1.0/_up walk.png");
+    auto sprite_walk_up = std::make_shared<Sprite>(
+        Atlas2D{texture_walk_up, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
+        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
+
+    // player::walk::down
+    // ----------------
+    auto texture_walk_down = game.loadTexture("player::walk::down",  //
+                                              "assets/RPGMCharacter_v1.0/_down walk.png");
+    auto sprite_walk_down = std::make_shared<Sprite>(
+        Atlas2D{texture_walk_down, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
+        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 5u});
+
+
+    // player::attack::side
+    // ----------------
+    auto texture_attack_side = game.loadTexture("player::attack::side",  //
+                                                "assets/RPGMCharacter_v1.0/_side attack.png");
+    auto sprite_attack_side = std::make_shared<Sprite>(
+        Atlas2D{texture_attack_side, AtlasSizePx{256, 128}, TileSizePx{64, 64}},
+        SpiteHitbox{20, 54}, SpriteAnimationDescriptor{.fps = 8u, .frame_count = 2u});
+
+    // player::attack::up
+    // ----------------
+    auto texture_attack_up = game.loadTexture("player::attack::up",  //
+                                              "assets/RPGMCharacter_v1.0/_up attack.png");
+    auto sprite_attack_up = std::make_shared<Sprite>(
+        Atlas2D{texture_attack_up, AtlasSizePx{256, 128}, TileSizePx{64, 64}}, SpiteHitbox{20, 54},
+        SpriteAnimationDescriptor{.fps = 8u, .frame_count = 2u});
+
+    // player::attack::down
+    // ----------------
+    auto texture_attack_down = game.loadTexture("player::attack::down",  //
+                                                "assets/RPGMCharacter_v1.0/_down attack.png");
+    auto sprite_attack_down = std::make_shared<Sprite>(
+        Atlas2D{texture_attack_down, AtlasSizePx{256, 128}, TileSizePx{64, 64}},
+        SpiteHitbox{20, 54}, SpriteAnimationDescriptor{.fps = 8u, .frame_count = 2u});
 
     auto [entity, id] = world.addPlayer(
         "Player One",
@@ -165,7 +259,10 @@ auto build_player_one(Game &game, World &world, float x, float y) {
                                 .idle_side = sprite_idle_side,
                                 .walk_down = sprite_walk_down,
                                 .walk_up = sprite_walk_up,
-                                .walk_side = sprite_walk_side});
+                                .walk_side = sprite_walk_side,
+                                .attack_side = sprite_attack_side,
+                                .attack_up = sprite_attack_up,
+                                .attack_down = sprite_attack_down});
     game.addStateMachine(std::move(sm));
     return entity;
 }

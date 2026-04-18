@@ -18,5 +18,6 @@
 namespace will_engine {
 struct ComponentInput {
     glm::vec2 input_keyboard;
+    bool attack_pressed = false;
 };
 }  // namespace will_engine

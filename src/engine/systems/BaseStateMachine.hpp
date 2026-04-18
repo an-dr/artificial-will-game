@@ -21,12 +21,12 @@ namespace will_engine {
 class IStateMachine : public BaseSystem {
 public:
     virtual ~IStateMachine() = default;
-    virtual auto getEntittyId() -> entt::entity = 0;
+    virtual auto getEntityId() -> entt::entity = 0;
     virtual auto tick() -> void = 0;
 };
 
 template <typename TransitionTable>
-class BaseStateMashine : public IStateMachine {
+class BaseStateMachine : public IStateMachine {
     entt::entity entity_;
     boost::sml::sm<TransitionTable> sm_;
 
@@ -36,14 +36,19 @@ protected:
         sm_.process_event(event);
     }
 
-public:
-    BaseStateMashine() = delete;
-    explicit BaseStateMashine(entt::entity id)
-        : entity_(id), sm_(static_cast<IStateMachine &>(*this)) {}
-    BaseStateMashine(entt::entity id, TransitionTable table)
-        : entity_(id), sm_(std::move(table), static_cast<IStateMachine &>(*this)) {}
-    virtual ~BaseStateMashine() = default;
+    template <typename TState>
+    [[nodiscard]] auto isState() const -> bool {
+        return sm_.is(boost::sml::state<TState>);
+    }
 
-    auto getEntittyId() -> entt::entity override { return entity_; }
+public:
+    BaseStateMachine() = delete;
+    explicit BaseStateMachine(entt::entity id)
+        : entity_(id), sm_(static_cast<IStateMachine &>(*this)) {}
+    BaseStateMachine(entt::entity id, TransitionTable table)
+        : entity_(id), sm_(std::move(table), static_cast<IStateMachine &>(*this)) {}
+    ~BaseStateMachine() override = default;
+
+    auto getEntityId() -> entt::entity override { return entity_; }
 };
 }  // namespace will_engine

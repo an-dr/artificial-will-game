@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "BaseStateMashine.hpp"
+#include "BaseStateMachine.hpp"
 #include "BaseSystem.hpp"
 
 namespace will_engine {

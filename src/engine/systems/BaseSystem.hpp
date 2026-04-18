@@ -19,7 +19,7 @@ namespace will_engine {
 class BaseSystem {
 
 private:
-    entt::registry *registry_ = nullptr; // All entities/components here
+    entt::registry *registry_ = nullptr;  // All entities/components here
 
 
 public:
@@ -30,4 +30,4 @@ public:
     [[nodiscard]] auto isRegisterSet() const -> bool { return registry_ != nullptr; }
 };
 
-}
+}  // namespace will_engine
