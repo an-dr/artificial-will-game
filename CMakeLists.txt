@@ -8,7 +8,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(SDL2_image CONFIG REQUIRED)
 find_package(abcmake REQUIRED)
-#find_package(microlog::microlog CONFIG REQUIRED)
+find_package(microlog CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
@@ -20,19 +20,18 @@ target_link_libraries(artificial_will PRIVATE
         SDL2::SDL2main
         SDL2::SDL2
         SDL2_image::SDL2_image
-#        microlog::microlog
+        microlog::microlog
         EnTT::EnTT
         glm::glm
         cute_c2
 )
 
-#target_compile_definitions(microlog PRIVATE
-##        ULOG_BUILD_COLOR=1
-##        ULOG_BUILD_TIME=1
-##        ULOG_BUILD_SOURCE_LOCATION=1
-##        ULOG_BUILD_TOPICS_MODE=ULOG_BUILD_TOPICS_MODE_DYNAMIC
-#        ULOG_BUILD_DISABLED=1
-#)
+target_compile_definitions(microlog PRIVATE
+       ULOG_BUILD_COLOR=1
+       ULOG_BUILD_TIME=1
+       ULOG_BUILD_SOURCE_LOCATION=1
+       ULOG_BUILD_TOPICS_MODE=ULOG_BUILD_TOPICS_MODE_DYNAMIC
+)
 
 # Copy SDL2.dll to build directory
 add_custom_command(TARGET artificial_will POST_BUILD

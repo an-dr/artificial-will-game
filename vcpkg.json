@@ -1,13 +1,14 @@
 {
-  "name": "artificial-will",
-  "version": "0.1.0",
-  "builtin-baseline": "a34a3811fce990f9d2809cf0356dd443143c7000",
-  "dependencies": [
-    "abcmake",
-    "sdl2",
-    "sdl2-image",
-    "bext-sml",
-    "entt",
-    "glm"
-  ]
+    "name": "artificial-will",
+    "version": "0.1.0",
+    "builtin-baseline": "a34a3811fce990f9d2809cf0356dd443143c7000",
+    "dependencies": [
+        "abcmake",
+        "sdl2",
+        "sdl2-image",
+        "bext-sml",
+        "entt",
+        "glm",
+        { "name": "microlog", "version>=": "7.1.0" }
+    ]
 }
